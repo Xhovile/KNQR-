@@ -14,6 +14,7 @@ export const PRODUCTS: Product[] = [
       "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=600&q=80"
     ],
     category: "Apparel",
+    collectionCategory: "Apparel",
     description: "Expertly tailored relaxed-fit apparel made from lightweight Malawian-sourced fabric. Features double pleats, comfortable side pockets, and custom organic fastenings. Designed for ultimate versatility and effortless elegance.",
     sizes: ["XS", "S", "M", "L", "XL"],
     colors: ["Earthy Brown", "Desert Sand", "Slate Charcoal"],
@@ -22,7 +23,14 @@ export const PRODUCTS: Product[] = [
       "Locally designed and ethically manufactured in Blantyre, Malawi",
       "Breathable material perfect for warm climates",
       "Dry clean recommended"
-    ]
+    ],
+    status: "active",
+    stock: 14,
+    delivery: {
+      available: true,
+      methods: ["Pickup", "Local delivery"],
+      note: "Delivery available within Blantyre and selected nearby areas."
+    }
   },
   {
     id: "knqr-necklace",
@@ -37,6 +45,7 @@ export const PRODUCTS: Product[] = [
       "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80"
     ],
     category: "Accessories",
+    collectionCategory: "Accessories",
     description: "An elegant, minimalist accessory designed as a physical representation of the KNQR spirit—unyielding, ambitious, and bold. Hand-polished to a reflective mirror finish, built to elevate any curated look.",
     sizes: ["One Size"],
     colors: ["24K Gold Plated"],
@@ -44,7 +53,14 @@ export const PRODUCTS: Product[] = [
       "Fine craftsmanship and luxury finishes",
       "Hypoallergenic and tarnish-resistant coating",
       "Packaged in a premium signature velvet pouch"
-    ]
+    ],
+    status: "active",
+    stock: 8,
+    delivery: {
+      available: true,
+      methods: ["Pickup", "Courier"],
+      note: "Courier delivery available on request."
+    }
   },
   {
     id: "knqr-blouse",
@@ -59,6 +75,7 @@ export const PRODUCTS: Product[] = [
       "https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=600&q=80"
     ],
     category: "Apparel",
+    collectionCategory: "Fragrances",
     description: "An evocative, premium-grade signature fragrance with a sophisticated fluid character. Crafted with clean natural notes. Perfect for transitioning seamlessly from creative workspace to high-end evening experiences.",
     sizes: ["50ml", "100ml"],
     colors: ["Original Essence"],
@@ -66,7 +83,14 @@ export const PRODUCTS: Product[] = [
       "Premium heavyweight natural fragrance oils",
       "Exquisite bottle design and crafted packaging",
       "Long-lasting luxury scent projection"
-    ]
+    ],
+    status: "active",
+    stock: 20,
+    delivery: {
+      available: true,
+      methods: ["Pickup", "Shipping"],
+      note: "Carefully packed for local and regional delivery."
+    }
   }
 ];
 
