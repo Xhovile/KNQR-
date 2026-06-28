@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Eye, ShoppingBag } from "lucide-react";
+import { Eye, ShoppingBag } from "lucide-react";
 import { Product } from "../types";
 import { motion } from "motion/react";
 
@@ -17,13 +17,12 @@ export default function Collection({
   priceCurrency,
 }: CollectionProps) {
   return (
-    <section 
-      className="py-16 px-6 bg-light-brown border-b border-chocolate/5 text-center" 
+    <section
+      className="py-16 px-6 bg-light-brown border-b border-chocolate/5 text-center"
       id="knqr-collection-section"
     >
-      {/* Elegant Header */}
       <div className="mb-12 max-w-sm mx-auto">
-        <h3 
+        <h3
           className="font-serif text-3xl sm:text-4xl font-normal tracking-tight text-chocolate mb-3 uppercase"
           id="collection-heading"
         >
@@ -32,13 +31,22 @@ export default function Collection({
         <div className="w-12 h-[1px] bg-chocolate/30 mx-auto" />
       </div>
 
-      {/* Vertical List of Cards with generous white space */}
       <div className="space-y-16 max-w-md mx-auto" id="collection-cards-list">
-        {products.map((product, idx) => {
+        {products.map((product) => {
           const displayPrice =
             priceCurrency === "USD"
               ? `$${product.priceUSD}`
               : `MK ${product.priceMWK.toLocaleString()}`;
+
+          const isAvailable = product.status === "active" && product.stock > 0;
+          const statusLabel =
+            product.status === "active"
+              ? "Available"
+              : product.status === "sold_out"
+                ? "Sold out"
+                : product.status === "draft"
+                  ? "Draft"
+                  : "Archived";
 
           return (
             <motion.div
@@ -49,8 +57,7 @@ export default function Collection({
               transition={{ duration: 0.1 }}
               id={`collection-card-${product.id}`}
             >
-              {/* Product Card Large Image Wrapper with zoom effect */}
-              <div 
+              <div
                 className="relative w-full aspect-[3/4] mb-5 rounded-2xl overflow-hidden border border-chocolate/15 cursor-pointer bg-[#ece5d8]"
                 onClick={() => onSelectProduct(product)}
                 id={`card-image-click-${product.id}`}
@@ -63,7 +70,24 @@ export default function Collection({
                   id={`card-img-${product.id}`}
                 />
 
-                {/* Hover Quick actions overlay */}
+                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                  <span className="inline-flex items-center rounded-full bg-chocolate text-cream px-3 py-1 text-[10px] font-semibold tracking-[0.25em] uppercase shadow-lg">
+                    {product.collectionCategory}
+                  </span>
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.25em] uppercase shadow-lg ${
+                      isAvailable ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
+                    }`}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
+
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-[10px] font-bold tracking-[0.25em] uppercase text-cream/90 z-10">
+                  <span>{product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</span>
+                  <span>{product.delivery.available ? "Delivery available" : "Pickup only"}</span>
+                </div>
+
                 <div className="absolute inset-0 bg-chocolate/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3 pointer-events-none group-hover:pointer-events-auto">
                   <button
                     onClick={(e) => {
@@ -82,7 +106,7 @@ export default function Collection({
                       onAddToCart(product);
                     }}
                     className="p-3 bg-chocolate hover:bg-gold text-cream hover:text-chocolate rounded-full transition-all duration-200 transform scale-90 group-hover:scale-100 cursor-pointer shadow-lg"
-                    title="Add to Cart"
+                    title={isAvailable ? "Add to Cart" : "Unavailable"}
                     id={`add-to-cart-btn-${product.id}`}
                   >
                     <ShoppingBag className="w-4 h-4" />
@@ -90,17 +114,18 @@ export default function Collection({
                 </div>
               </div>
 
-              {/* Minimal Text with ample white space */}
               <div className="text-center w-full px-2" id={`card-info-${product.id}`}>
-                <h4 
+                <p className="text-[10px] uppercase tracking-[0.35em] text-chocolate/45 mb-2">
+                  {product.category}
+                </p>
+                <h4
                   className="font-serif text-xl font-normal text-chocolate hover:text-chocolate-light transition-colors cursor-pointer tracking-wide"
                   onClick={() => onSelectProduct(product)}
                   id={`card-title-${product.id}`}
                 >
                   {product.name}
                 </h4>
-                
-                {/* Visual subtle divider between list items */}
+                <p className="mt-2 text-sm text-chocolate/70">{displayPrice}</p>
                 <div className="w-8 h-[1px] bg-chocolate/10 mx-auto mt-6" />
               </div>
             </motion.div>
