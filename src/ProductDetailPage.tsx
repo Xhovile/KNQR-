@@ -26,7 +26,6 @@ export default function ProductDetailPage({
 
   useEffect(() => {
     setActiveImageIndex(0);
-    // Scroll to top when opening a product detail page
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [product.id]);
 
@@ -58,6 +57,15 @@ export default function ProductDetailPage({
       ? `MK ${product.priceMWK.toLocaleString()}`
       : `$${product.priceUSD}`;
 
+  const statusLabel =
+    product.status === "active"
+      ? "Available"
+      : product.status === "sold_out"
+        ? "Sold out"
+        : product.status === "draft"
+          ? "Draft"
+          : "Archived";
+
   const handleAddToCart = () => {
     onAddToCart(product, quantity, selectedSize, selectedColor);
     setAddedMessage(true);
@@ -75,7 +83,6 @@ export default function ProductDetailPage({
       className="min-h-screen bg-chocolate text-cream flex flex-col"
       id="product-detail-page-container"
     >
-      {/* Top Standalone Nav Bar */}
       <div className="border-b border-cream/5 bg-chocolate-dark/50 backdrop-blur-md sticky top-0 z-30 py-4 px-6 md:px-12 flex items-center justify-between">
         <button
           onClick={onBack}
@@ -90,8 +97,7 @@ export default function ProductDetailPage({
           <span className="hidden sm:inline font-mono text-[9px] tracking-[0.4em] text-gold uppercase font-bold">
             KNQR / {product.category}
           </span>
-          
-          {/* Three Horizontal Dots Menu */}
+
           <div className="relative flex items-center">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -99,23 +105,14 @@ export default function ProductDetailPage({
               aria-label="Toggle details menu"
               id="details-menu-trigger-button"
             >
-              {dropdownOpen ? (
-                <X className="w-5 h-5 text-gold" />
-              ) : (
-                <MoreHorizontal className="w-5 h-5" />
-              )}
+              {dropdownOpen ? <X className="w-5 h-5 text-gold" /> : <MoreHorizontal className="w-5 h-5" />}
             </button>
 
-            {/* Dropdown Card panel */}
             <AnimatePresence>
               {dropdownOpen && (
                 <>
-                  {/* Backdrop click away listener */}
-                  <div 
-                    className="fixed inset-0 z-40 bg-black/5" 
-                    onClick={() => setDropdownOpen(false)}
-                  />
-                  
+                  <div className="fixed inset-0 z-40 bg-black/5" onClick={() => setDropdownOpen(false)} />
+
                   <motion.div
                     initial={{ opacity: 0, y: 15, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -125,7 +122,7 @@ export default function ProductDetailPage({
                     id="details-menu-dropdown-panel"
                   >
                     <div className="absolute top-0 right-4 -mt-1.5 w-3 h-3 bg-chocolate-dark border-t border-l border-cream/10 rotate-45" />
-                    
+
                     {menuItems.map((item) => (
                       <button
                         key={item.label}
@@ -145,10 +142,7 @@ export default function ProductDetailPage({
         </div>
       </div>
 
-      {/* Main Grid Content */}
       <div className="flex-1 max-w-6xl w-full mx-auto px-6 py-8 md:py-16 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
-        
-        {/* Left Column: Premium Gallery Layout */}
         <div className="space-y-6 flex flex-col justify-start">
           <div className="relative aspect-[4/5] rounded-2xl overflow-hidden luxury-border bg-chocolate-dark shadow-2xl">
             <img
@@ -158,17 +152,13 @@ export default function ProductDetailPage({
               referrerPolicy="no-referrer"
               id="detail-main-preview-image"
             />
-            {/* Dark premium vignette overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-chocolate-dark/40 via-transparent to-transparent pointer-events-none" />
-            
-            {/* Ambient Corner Brackets */}
             <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-gold/40 rounded-tl-sm" />
             <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-gold/40 rounded-tr-sm" />
             <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-gold/40 rounded-bl-sm" />
             <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-gold/40 rounded-br-sm" />
           </div>
 
-          {/* Thumbnails Gallery */}
           {imagesList.length > 1 && (
             <div className="flex gap-3 overflow-x-auto py-2 scrollbar-thin select-none" id="detail-thumbnails-row">
               {imagesList.map((imgSrc, idx) => {
@@ -178,8 +168,8 @@ export default function ProductDetailPage({
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
                     className={`relative w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300 cursor-pointer shrink-0 ${
-                      isSelected 
-                        ? "border-gold scale-105 shadow-md shadow-gold/10" 
+                      isSelected
+                        ? "border-gold scale-105 shadow-md shadow-gold/10"
                         : "border-cream/10 opacity-50 hover:opacity-100 hover:scale-102"
                     }`}
                     id={`detail-thumb-${idx}`}
@@ -197,31 +187,50 @@ export default function ProductDetailPage({
           )}
         </div>
 
-        {/* Right Column: Premium Form and Info Area */}
         <div className="flex flex-col justify-start space-y-8">
-          
-          {/* Title & Price Header */}
           <div className="space-y-3">
             <span className="text-[10px] font-mono tracking-[0.4em] text-gold uppercase font-bold" id="detail-category-badge">
-              {product.category} Collection
+              {product.collectionCategory || product.category} Collection
             </span>
             <h1 className="font-serif text-3xl md:text-4xl text-cream font-semibold tracking-wide leading-tight" id="detail-product-name">
               {product.name}
             </h1>
-            <div className="flex items-center space-x-4 pt-1" id="detail-price-wrapper">
+            <div className="flex items-center flex-wrap gap-3 pt-1" id="detail-price-wrapper">
               <span className="font-mono text-xl md:text-2xl text-gold font-semibold tracking-wider">
                 {displayPrice}
               </span>
               <span className="text-sm text-cream/40 line-through">
                 ({otherPrice})
               </span>
+              <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold tracking-[0.25em] uppercase ${
+                product.status === "active" ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
+              }`}>
+                {statusLabel}
+              </span>
             </div>
           </div>
 
-          {/* Divider */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-cream/10 bg-chocolate-dark/50 p-4">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-gold/80">Stock</p>
+              <p className="mt-2 text-2xl font-semibold text-cream">{product.stock}</p>
+            </div>
+            <div className="rounded-2xl border border-cream/10 bg-chocolate-dark/50 p-4">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-gold/80">Delivery</p>
+              <p className="mt-2 text-sm text-cream/80">
+                {product.delivery.available ? product.delivery.methods.join(" • ") : "Pickup only"}
+              </p>
+            </div>
+          </div>
+
+          {product.delivery.note ? (
+            <div className="rounded-2xl border border-cream/10 bg-chocolate-dark/40 p-4 text-sm text-cream/75 leading-relaxed">
+              {product.delivery.note}
+            </div>
+          ) : null}
+
           <div className="border-t border-cream/10" />
 
-          {/* Product Description */}
           <div className="space-y-2">
             <h4 className="text-[10px] font-mono tracking-widest text-cream/40 uppercase">
               The Story
@@ -231,10 +240,7 @@ export default function ProductDetailPage({
             </p>
           </div>
 
-          {/* Sizes and Accent Options Block */}
           <div className="space-y-6">
-            
-            {/* Sizes */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-3">
                 <div className="flex justify-between items-center select-none">
@@ -264,7 +270,6 @@ export default function ProductDetailPage({
               </div>
             )}
 
-            {/* Accent Colors */}
             {product.colors && product.colors.length > 0 && (
               <div className="space-y-3">
                 <span className="text-[10px] font-mono tracking-widest text-gold uppercase select-none">
@@ -290,7 +295,6 @@ export default function ProductDetailPage({
             )}
           </div>
 
-          {/* Sourcing & Specifications Bullets */}
           {product.details && product.details.length > 0 && (
             <div className="space-y-3 border-t border-cream/10 pt-6">
               <span className="text-[10px] font-mono tracking-widest text-gold uppercase select-none">
@@ -310,10 +314,8 @@ export default function ProductDetailPage({
             </div>
           )}
 
-          {/* Divider */}
           <div className="border-t border-cream/10" />
 
-          {/* Buy Section: Quantity and Add to Bag */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono tracking-widest text-gold uppercase select-none">
@@ -340,7 +342,6 @@ export default function ProductDetailPage({
               </div>
             </div>
 
-            {/* CTA Buy Button */}
             <button
               onClick={handleAddToCart}
               disabled={addedMessage}
@@ -364,12 +365,9 @@ export default function ProductDetailPage({
               )}
             </button>
           </div>
-
         </div>
-
       </div>
 
-      {/* Floating Tactical Alert Notification */}
       <AnimatePresence>
         {activeNotification && (
           <motion.div
@@ -384,7 +382,6 @@ export default function ProductDetailPage({
           </motion.div>
         )}
       </AnimatePresence>
-
     </motion.div>
   );
 }
