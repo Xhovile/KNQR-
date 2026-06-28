@@ -4,6 +4,7 @@ export interface Product {
   priceUSD: number;
   priceMWK: number;
   image: string;
+  images?: string[];
   category: string;
   description: string;
   sizes?: string[];

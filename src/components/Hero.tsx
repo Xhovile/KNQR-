@@ -44,7 +44,7 @@ export default function Hero({ onShopClick }: HeroProps) {
         >
           {/* Subtle background color block for image loading */}
           <img
-            src="/src/assets/images/knqr_hero_model_1782618845727.jpg"
+            src="/src/assets/images/knqr_black_shirt_1782625829276.jpg"
             alt="KNQR Premium Lifestyle Campaign Model"
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
             referrerPolicy="no-referrer"

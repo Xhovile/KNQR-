@@ -57,9 +57,11 @@ export default function Navigation({ activeTab, setActiveTab, onNavigate }: Navi
                 {item.label}
                 {isActive && (
                   <motion.div
-                    layoutId="activeUnderline"
-                    className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-cream"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    initial={{ opacity: 0, scaleX: 0.6 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    exit={{ opacity: 0, scaleX: 0.6 }}
+                    className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-cream origin-center"
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                   />
                 )}
               </button>

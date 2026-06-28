@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Minus, Plus, ShoppingBag, Check } from "lucide-react";
 import { Product } from "../types";
 import { motion, AnimatePresence } from "motion/react";
@@ -22,6 +22,13 @@ export default function ProductModal({
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "");
   const [quantity, setQuantity] = useState(1);
   const [addedMessage, setAddedMessage] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product?.id]);
+
+  const imagesList = product.images || [product.image];
 
   const displayPrice =
     priceCurrency === "USD"
@@ -80,15 +87,43 @@ export default function ProductModal({
 
           {/* Scrollable Core */}
           <div className="overflow-y-auto p-6 space-y-6 flex-1">
-            {/* Product Feature image */}
-            <div className="relative aspect-[4/3] rounded-xl overflow-hidden luxury-border">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-cover object-center"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-chocolate-light via-transparent to-transparent opacity-60" />
+            {/* Product Feature image with thumbnails gallery */}
+            <div className="space-y-3">
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden luxury-border bg-chocolate">
+                <img
+                  src={imagesList[activeImageIndex] || product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover object-center transition-all duration-300"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-chocolate-light via-transparent to-transparent opacity-40" />
+              </div>
+              
+              {/* Gallery Thumbnails List */}
+              {imagesList.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin select-none" id="product-gallery-thumbnails">
+                  {imagesList.map((imgSrc, idx) => {
+                    const isSelected = idx === activeImageIndex;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveImageIndex(idx)}
+                        className={`relative w-16 h-12 rounded-md overflow-hidden border-2 transition-all duration-200 cursor-pointer shrink-0 ${
+                          isSelected ? "border-gold scale-105" : "border-cream/10 opacity-60 hover:opacity-100"
+                        }`}
+                        id={`gallery-thumb-${idx}`}
+                      >
+                        <img
+                          src={imgSrc}
+                          alt={`${product.name} view ${idx + 1}`}
+                          className="w-full h-full object-cover object-center"
+                          referrerPolicy="no-referrer"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Product Meta */}

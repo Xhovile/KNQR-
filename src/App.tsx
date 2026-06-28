@@ -3,6 +3,7 @@ import {
   ShoppingBag, 
   ArrowUp
 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 import Header from "./components/Header";
 import Navigation from "./components/Navigation";
@@ -11,7 +12,7 @@ import Collection from "./components/Collection";
 import Promo from "./components/Promo";
 import Footer from "./components/Footer";
 import Cart from "./components/Cart";
-import ProductModal from "./components/ProductModal";
+import ProductDetailPage from "./ProductDetailPage";
 
 import { PRODUCTS } from "./data";
 import { Product, CartItem, ActiveTab } from "./types";
@@ -107,37 +108,57 @@ export default function App() {
 
   return (
     <div className="bg-chocolate min-h-screen text-cream flex flex-col relative" id="app-root-container">
-      {/* 1. Header Area */}
-      <Header />
+      <AnimatePresence mode="wait">
+        {selectedProduct ? (
+          <ProductDetailPage
+            product={selectedProduct}
+            onBack={() => setSelectedProduct(null)}
+            onAddToCart={handleAddToCart}
+            priceCurrency={priceCurrency}
+          />
+        ) : (
+          <motion.div
+            key="main-catalog"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col"
+          >
+            {/* 1. Header Area */}
+            <Header />
 
-      {/* 2. Horizontal Navigation */}
-      <Navigation 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        onNavigate={handleNavigation} 
-      />
+            {/* 2. Horizontal Navigation */}
+            <Navigation 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab} 
+              onNavigate={handleNavigation} 
+            />
 
-      {/* 3. Hero Section */}
-      <Hero onShopClick={() => handleNavigation("shop")} />
+            {/* 3. Hero Section */}
+            <Hero onShopClick={() => handleNavigation("shop")} />
 
-      {/* 4. Featured Collections Shelf */}
-      <Collection
-        products={PRODUCTS}
-        onSelectProduct={(product) => setSelectedProduct(product)}
-        onAddToCart={(prod) => handleAddToCart(prod, 1, prod.sizes?.[0], prod.colors?.[0])}
-        priceCurrency={priceCurrency}
-      />
+            {/* 4. Featured Collections Shelf */}
+            <Collection
+              products={PRODUCTS}
+              onSelectProduct={(product) => setSelectedProduct(product)}
+              onAddToCart={(prod) => handleAddToCart(prod, 1, prod.sizes?.[0], prod.colors?.[0])}
+              priceCurrency={priceCurrency}
+            />
 
-      {/* 5. Promotional Banner Overlay */}
-      <Promo onShopClick={() => handleNavigation("shop")} />
+            {/* 5. Promotional Banner Overlay */}
+            <Promo onShopClick={() => handleNavigation("shop")} />
 
-      {/* 6. Centered Chocolate Footer */}
-      <Footer />
+            {/* 6. Centered Chocolate Footer */}
+            <Footer />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick Access Floating Cart Button */}
       <button
         onClick={() => setIsCartOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-4 bg-cream text-chocolate hover:bg-gold rounded-full shadow-2xl transition-all hover:scale-105 flex items-center justify-center cursor-pointer group"
+        className="fixed bottom-6 right-6 z-40 p-4 bg-[#0b1b33] text-cream hover:bg-[#122c54] hover:text-gold border border-gold/30 rounded-full shadow-2xl transition-all hover:scale-105 flex items-center justify-center cursor-pointer group"
         id="floating-cart-trigger"
       >
         <ShoppingBag className="w-5 h-5" />
@@ -167,14 +188,6 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
-        priceCurrency={priceCurrency}
-      />
-
-      {/* Product Detail Drawer */}
-      <ProductModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={handleAddToCart}
         priceCurrency={priceCurrency}
       />
     </div>
