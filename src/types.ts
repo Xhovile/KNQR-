@@ -6,10 +6,18 @@ export interface Product {
   image: string;
   images?: string[];
   category: string;
+  collectionCategory: string;
   description: string;
   sizes?: string[];
   colors?: string[];
   details?: string[];
+  status: "draft" | "active" | "sold_out" | "archived";
+  stock: number;
+  delivery: {
+    available: boolean;
+    methods: string[];
+    note?: string;
+  };
 }
 
 export interface CartItem {
