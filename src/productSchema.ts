@@ -42,6 +42,7 @@ export interface ProductDraftValues {
   priceUSD: number | null;
   priceMWK: number | null;
   collectionCategory: string;
+  category: string;
   image: string;
   images: string[];
   sizes: string[];
@@ -63,6 +64,7 @@ export const PRODUCT_SCHEMA: ProductSchema = {
     "priceUSD",
     "priceMWK",
     "collectionCategory",
+    "category",
     "image",
     "images",
     "description",
@@ -74,7 +76,7 @@ export const PRODUCT_SCHEMA: ProductSchema = {
     {
       key: "basic",
       title: "Basic Info",
-      fields: ["name", "collectionCategory", "description", "status"],
+      fields: ["name", "collectionCategory", "category", "description", "status"],
     },
     {
       key: "pricing",
@@ -117,7 +119,19 @@ export const PRODUCT_SCHEMA: ProductSchema = {
       type: "select",
       required: true,
       section: "basic",
-      options: ["Apparel", "Accessories", "Fragrances"],
+      options: ["Apparel", "Bags & Accessories", "Fragrances"],
+    },
+    {
+      key: "category",
+      label: "Sub Category",
+      type: "select",
+      required: true,
+      section: "basic",
+      options: [
+        "T-shirts", "Hoodies", "Sweaters", "Tracksuits", "Golf shirts", "Jackets", "3/4 sleeve shirts",
+        "Backpacks", "Sling bags", "Gym bags", "Hustle bags", "Toilet bags",
+        "Perfumes", "Colognes"
+      ],
     },
     {
       key: "description",
@@ -221,6 +235,7 @@ export function createEmptyProductDraft(): ProductDraftValues {
     priceUSD: null,
     priceMWK: null,
     collectionCategory: "Apparel",
+    category: "T-shirts",
     image: "",
     images: [],
     sizes: [],

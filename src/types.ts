@@ -27,4 +27,4 @@ export interface CartItem {
   selectedColor?: string;
 }
 
-export type ActiveTab = "home" | "shop" | "contact";
+export type ActiveTab = "home" | "shop" | "contact" | "apparel" | "bags-accessories" | "fragrances";

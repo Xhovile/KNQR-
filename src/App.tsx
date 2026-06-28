@@ -15,6 +15,10 @@ import Cart from "./components/Cart";
 import ProductDetailPage from "./ProductDetailPage";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
+import Shop from "./Shop";
+import ApparelPage from "./ApparelPage";
+import BagsAndAccessoriesPage from "./BagsAndAccessoriesPage";
+import FragrancesPage from "./FragrancesPage";
 import { ProductDraftValues } from "./productSchema";
 
 import { PRODUCTS } from "./data";
@@ -30,6 +34,13 @@ export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+
+  const handleToggleWishlist = (productId: string) => {
+    setWishlist((prev) =>
+      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
+    );
+  };
 
   // Monitor scroll for "back to top" button visibility
   useEffect(() => {
@@ -95,10 +106,7 @@ export default function App() {
     if (tab === "home") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (tab === "shop") {
-      const shopEl = document.getElementById("knqr-collection-section");
-      if (shopEl) {
-        shopEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (tab === "contact") {
       const contactEl = document.getElementById("knqr-footer-section");
       if (contactEl) {
@@ -121,7 +129,7 @@ export default function App() {
       priceMWK: values.priceMWK || 0,
       image: values.image || "",
       images: values.images || [],
-      category: values.collectionCategory || "Apparel",
+      category: values.category || "T-shirts",
       collectionCategory: values.collectionCategory,
       description: values.description,
       sizes: values.sizes,
@@ -150,7 +158,7 @@ export default function App() {
       priceMWK: values.priceMWK || 0,
       image: values.image || "",
       images: values.images || [],
-      category: values.collectionCategory || "Apparel",
+      category: values.category || "T-shirts",
       collectionCategory: values.collectionCategory,
       description: values.description,
       sizes: values.sizes,
@@ -206,7 +214,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col"
+            className="flex flex-col min-h-screen"
           >
             {/* 1. Header Area */}
             <Header />
@@ -219,19 +227,126 @@ export default function App() {
               onCreateProduct={() => setIsCreatingProduct(true)}
             />
 
-            {/* 3. Hero Section */}
-            <Hero onShopClick={() => handleNavigation("shop")} />
+            <AnimatePresence mode="wait">
+              {activeTab === "shop" ? (
+                <motion.div
+                  key="shop-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex flex-col flex-grow bg-light-brown text-chocolate border-b border-chocolate/5"
+                >
+                  <Shop
+                    products={productsList}
+                    onViewDetails={(product) => setSelectedProduct(product)}
+                    onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.name)}
+                    onToggleWishlist={handleToggleWishlist}
+                    wishlist={wishlist}
+                    priceCurrency={priceCurrency}
+                  />
+                </motion.div>
+              ) : activeTab === "apparel" ? (
+                <motion.div
+                  key="apparel-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex flex-col flex-grow bg-light-brown text-chocolate border-b border-chocolate/5"
+                >
+                  <ApparelPage
+                    products={productsList}
+                    onViewDetails={(product) => setSelectedProduct(product)}
+                    onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.value)}
+                    onToggleWishlist={handleToggleWishlist}
+                    wishlist={wishlist}
+                    priceCurrency={priceCurrency}
+                    onBackToHome={() => {
+                      setActiveTab("home");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  />
+                </motion.div>
+              ) : activeTab === "bags-accessories" ? (
+                <motion.div
+                  key="bags-accessories-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex flex-col flex-grow bg-light-brown text-chocolate border-b border-chocolate/5"
+                >
+                  <BagsAndAccessoriesPage
+                    products={productsList}
+                    onViewDetails={(product) => setSelectedProduct(product)}
+                    onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.value)}
+                    onToggleWishlist={handleToggleWishlist}
+                    wishlist={wishlist}
+                    priceCurrency={priceCurrency}
+                    onBackToHome={() => {
+                      setActiveTab("home");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  />
+                </motion.div>
+              ) : activeTab === "fragrances" ? (
+                <motion.div
+                  key="fragrances-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex flex-col flex-grow bg-light-brown text-chocolate border-b border-chocolate/5"
+                >
+                  <FragrancesPage
+                    products={productsList}
+                    onViewDetails={(product) => setSelectedProduct(product)}
+                    onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.value)}
+                    onToggleWishlist={handleToggleWishlist}
+                    wishlist={wishlist}
+                    priceCurrency={priceCurrency}
+                    onBackToHome={() => {
+                      setActiveTab("home");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="home-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex flex-col"
+                >
+                  {/* 3. Hero Section */}
+                  <Hero onShopClick={() => { setActiveTab("shop"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
 
-            {/* 4. Featured Collections Shelf */}
-            <Collection
-              products={productsList}
-              onSelectProduct={(product) => setSelectedProduct(product)}
-              onAddToCart={(prod) => handleAddToCart(prod, 1, prod.sizes?.[0], prod.colors?.[0])}
-              priceCurrency={priceCurrency}
-            />
+                  {/* 4. Featured Collections Shelf */}
+                  <Collection
+                    products={productsList}
+                    onSelectCollection={(collectionCategory) => {
+                      const lower = collectionCategory.toLowerCase();
+                      if (lower.includes("bags") || lower.includes("accessories")) {
+                        setActiveTab("bags-accessories");
+                      } else if (lower.includes("fragrance")) {
+                        setActiveTab("fragrances");
+                      } else {
+                        setActiveTab("apparel");
+                      }
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    onAddToCart={(prod) => handleAddToCart(prod, 1, prod.sizes?.[0], prod.colors?.[0])}
+                    priceCurrency={priceCurrency}
+                  />
 
-            {/* 5. Promotional Banner Overlay */}
-            <Promo onShopClick={() => handleNavigation("shop")} />
+                  {/* 5. Promotional Banner Overlay */}
+                  <Promo onShopClick={() => { setActiveTab("shop"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* 6. Centered Chocolate Footer */}
             <Footer />

@@ -18,6 +18,7 @@ import {
 import { ProductDraftValues, PRODUCT_SCHEMA, createEmptyProductDraft, ProductStatus, ProductDeliveryMethod } from "../productSchema";
 import { Product } from "../types";
 import { motion, AnimatePresence } from "motion/react";
+import { uploadToCloudinary, isBase64Image } from "../utils/cloudinary";
 
 interface ProductFormProps {
   mode: "create" | "edit";
@@ -36,6 +37,12 @@ const PRESET_IMAGES = [
   { label: "Classic Black Shirt", url: "/src/assets/images/knqr_black_shirt_1782625829276.jpg" },
   { label: "Tailored Trousers", url: "/src/assets/images/knqr_trousers_1782618856513.jpg" },
 ];
+
+export const SUBCATEGORIES_MAP: Record<string, string[]> = {
+  "Apparel": ["T-shirts", "Hoodies", "Sweaters", "Tracksuits", "Golf shirts", "Jackets", "3/4 sleeve shirts"],
+  "Bags & Accessories": ["Backpacks", "Sling bags", "Gym bags", "Hustle bags", "Toilet bags"],
+  "Fragrances": ["Perfumes", "Colognes"]
+};
 
 export default function ProductForm({
   mode,
@@ -57,7 +64,8 @@ export default function ProductForm({
         name: prod.name || "",
         priceUSD: prod.priceUSD ?? null,
         priceMWK: prod.priceMWK ?? null,
-        collectionCategory: prod.collectionCategory || prod.category || "Apparel",
+        collectionCategory: prod.collectionCategory || "Apparel",
+        category: prod.category || "T-shirts",
         image: prod.image || "",
         images: prod.images || (prod.image ? [prod.image] : []),
         sizes: prod.sizes || [],
@@ -83,14 +91,10 @@ export default function ProductForm({
   const [customColorInput, setCustomColorInput] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const [previewTab, setPreviewTab] = useState<"edit" | "preview">("edit");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgressMsg, setUploadProgressMsg] = useState("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Sync category state based on collectionCategory
-  const [category, setCategory] = useState(values.collectionCategory);
-
-  useEffect(() => {
-    setCategory(values.collectionCategory);
-  }, [values.collectionCategory]);
 
   // Handle single field change
   const handleChange = (key: keyof ProductDraftValues, val: any) => {
@@ -245,7 +249,7 @@ export default function ProductForm({
   };
 
   // 5. Validation and Submit
-  const handlePublish = () => {
+  const handlePublish = async () => {
     const validationErrors: Record<string, string> = {};
 
     if (!values.name.trim()) {
@@ -259,6 +263,9 @@ export default function ProductForm({
     }
     if (!values.collectionCategory) {
       validationErrors.collectionCategory = "Please select a collection.";
+    }
+    if (!values.category) {
+      validationErrors.category = "Please select a sub-category.";
     }
     if (!values.image) {
       validationErrors.image = "A primary image is required.";
@@ -290,7 +297,44 @@ export default function ProductForm({
       return;
     }
 
-    onSubmit(values);
+    // Set uploading state and start Cloudinary processing
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadProgressMsg("Checking specimen media for local uploads...");
+
+    try {
+      // Find all unique base64 images that need uploading
+      const allImages = [values.image, ...values.images];
+      const uniqueBase64s = Array.from(new Set(allImages.filter(isBase64Image)));
+
+      const uploadedUrls: Record<string, string> = {};
+
+      if (uniqueBase64s.length > 0) {
+        for (let i = 0; i < uniqueBase64s.length; i++) {
+          const base64 = uniqueBase64s[i];
+          setUploadProgressMsg(`Uploading specimen image ${i + 1} of ${uniqueBase64s.length} to Cloudinary...`);
+          const secureUrl = await uploadToCloudinary(base64);
+          uploadedUrls[base64] = secureUrl;
+        }
+      }
+
+      // Prepare final values with Cloudinary URLs substituted
+      const finalPrimaryImage = uploadedUrls[values.image] || values.image;
+      const finalGalleryImages = values.images.map((img) => uploadedUrls[img] || img);
+
+      const finalValues: ProductDraftValues = {
+        ...values,
+        image: finalPrimaryImage,
+        images: finalGalleryImages,
+      };
+
+      setUploadProgressMsg("Instantly syncing specimen to catalog...");
+      onSubmit(finalValues);
+    } catch (error: any) {
+      console.error("Cloudinary upload failed:", error);
+      setUploadError(error.message || "An unexpected error occurred during Cloudinary upload. Please check your credentials and connection.");
+      // Keep isUploading true so they see the error dialog and can click "Close" or "Retry"
+    }
   };
 
   const displayPriceUSD = values.priceUSD ? `$${Number(values.priceUSD).toLocaleString()}` : "$0";
@@ -376,11 +420,25 @@ export default function ProductForm({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div id="field-group-collectionCategory" className="space-y-2">
                   <label className="text-[10px] font-mono tracking-widest uppercase text-gold">
-                    Collection *
+                    Main Collection Category *
                   </label>
                   <select
                     value={values.collectionCategory}
-                    onChange={(e) => handleChange("collectionCategory", e.target.value)}
+                    onChange={(e) => {
+                      const newColl = e.target.value;
+                      setValues((prev) => ({
+                        ...prev,
+                        collectionCategory: newColl,
+                        category: SUBCATEGORIES_MAP[newColl]?.[0] || ""
+                      }));
+                      // Clear errors for collection and category
+                      setErrors((prev) => {
+                        const next = { ...prev };
+                        delete next.collectionCategory;
+                        delete next.category;
+                        return next;
+                      });
+                    }}
                     className="w-full bg-chocolate border border-cream/15 rounded-xl px-4 py-3.5 text-sm text-cream focus:outline-none focus:border-gold transition-colors appearance-none cursor-pointer"
                   >
                     {PRODUCT_SCHEMA.fields.find(f => f.key === "collectionCategory")?.options?.map((opt) => (
@@ -391,18 +449,25 @@ export default function ProductForm({
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div id="field-group-category" className="space-y-2">
                   <label className="text-[10px] font-mono tracking-widest uppercase text-gold">
-                    Display Category
+                    Sub Category *
                   </label>
-                  <input
-                    type="text"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    placeholder="e.g. Outerwear, Handcrafted..."
-                    className="w-full bg-chocolate border border-cream/15 rounded-xl px-4 py-3.5 text-sm text-cream focus:outline-none focus:border-gold transition-colors placeholder-cream/30"
-                  />
-                  <p className="text-[9px] font-mono text-cream/40">Will default to the main Collection Category if empty.</p>
+                  <select
+                    value={values.category}
+                    onChange={(e) => handleChange("category", e.target.value)}
+                    className="w-full bg-chocolate border border-cream/15 rounded-xl px-4 py-3.5 text-sm text-cream focus:outline-none focus:border-gold transition-colors appearance-none cursor-pointer"
+                  >
+                    {(SUBCATEGORIES_MAP[values.collectionCategory] || []).map((subopt) => (
+                      <option key={subopt} value={subopt} className="bg-chocolate text-cream">
+                        {subopt}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[9px] font-mono text-cream/40">Specific subcategory that changes dynamically based on the main category.</p>
+                  {errors.category && (
+                    <p className="text-xs text-rose-400 font-mono tracking-wide">{errors.category}</p>
+                  )}
                 </div>
               </div>
 
@@ -987,6 +1052,97 @@ export default function ProductForm({
           <span>Publish Specimen</span>
         </button>
       </div>
+
+      {/* Cloudinary Uploading & Status Overlay */}
+      <AnimatePresence>
+        {isUploading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-chocolate-dark/95 backdrop-blur-md p-6"
+            id="cloudinary-upload-overlay"
+          >
+            <div className="max-w-md w-full bg-chocolate border border-cream/15 rounded-2xl p-8 space-y-6 text-center shadow-2xl relative overflow-hidden luxury-glow">
+              
+              {/* Golden circular decorative background elements */}
+              <div className="absolute -top-12 -left-12 w-24 h-24 bg-gold/5 rounded-full blur-xl" />
+              <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-gold/5 rounded-full blur-xl" />
+
+              {!uploadError ? (
+                <>
+                  {/* Premium Spinner */}
+                  <div className="flex justify-center">
+                    <div className="relative w-16 h-16 flex items-center justify-center">
+                      <div className="absolute inset-0 border-4 border-gold/20 rounded-full" />
+                      <div className="absolute inset-0 border-4 border-t-gold rounded-full animate-spin" />
+                      <Sparkles className="w-6 h-6 text-gold animate-pulse" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="font-serif text-lg tracking-wide text-cream">
+                      Processing Media
+                    </h3>
+                    <p className="text-xs font-mono text-gold tracking-widest uppercase">
+                      Direct Cloudinary Handshake
+                    </p>
+                  </div>
+
+                  <div className="bg-chocolate-light/40 border border-cream/5 p-4 rounded-xl">
+                    <p className="text-xs text-cream/70 leading-relaxed font-sans animate-pulse">
+                      {uploadProgressMsg}
+                    </p>
+                  </div>
+
+                  <p className="text-[10px] font-mono text-cream/40 uppercase">
+                    Securing your high-res specimen visuals...
+                  </p>
+                </>
+              ) : (
+                <>
+                  {/* Error State */}
+                  <div className="flex justify-center">
+                    <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center text-rose-400">
+                      <X className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="font-serif text-lg tracking-wide text-rose-400">
+                      Sync Failed
+                    </h3>
+                    <p className="text-xs font-mono text-rose-400/65 tracking-widest uppercase">
+                      Cloudinary Connection Error
+                    </p>
+                  </div>
+
+                  <div className="bg-rose-950/20 border border-rose-500/10 p-4 rounded-xl text-left max-h-36 overflow-y-auto">
+                    <p className="text-xs text-rose-300 leading-relaxed font-mono">
+                      {uploadError}
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-3 pt-2">
+                    <button
+                      onClick={() => setIsUploading(false)}
+                      className="flex-1 py-3 border border-cream/15 hover:border-cream/35 rounded-xl text-xs font-mono tracking-wider uppercase text-cream/70 hover:text-cream transition-all cursor-pointer"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={handlePublish}
+                      className="flex-1 py-3 bg-gold hover:bg-gold-light text-chocolate rounded-xl text-xs font-mono tracking-wider uppercase font-bold transition-all cursor-pointer"
+                    >
+                      Retry Upload
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

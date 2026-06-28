@@ -5,14 +5,14 @@ import { motion } from "motion/react";
 
 interface CollectionProps {
   products: Product[];
-  onSelectProduct: (product: Product) => void;
+  onSelectCollection: (collectionCategory: string) => void;
   onAddToCart: (product: Product) => void;
   priceCurrency: "USD" | "MWK";
 }
 
 export default function Collection({
   products,
-  onSelectProduct,
+  onSelectCollection,
   onAddToCart,
   priceCurrency,
 }: CollectionProps) {
@@ -59,7 +59,7 @@ export default function Collection({
             >
               <div
                 className="relative w-full aspect-[3/4] mb-5 rounded-2xl overflow-hidden border border-chocolate/15 cursor-pointer bg-[#ece5d8]"
-                onClick={() => onSelectProduct(product)}
+                onClick={() => onSelectCollection(product.collectionCategory)}
                 id={`card-image-click-${product.id}`}
               >
                 <img
@@ -81,36 +81,27 @@ export default function Collection({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onSelectProduct(product);
+                      onSelectCollection(product.collectionCategory);
                     }}
-                    className="p-3 bg-chocolate hover:bg-gold text-cream hover:text-chocolate rounded-full transition-all duration-200 transform scale-90 group-hover:scale-100 cursor-pointer shadow-lg"
-                    title="Quick View"
+                    className="px-6 py-3 bg-chocolate hover:bg-gold text-cream hover:text-chocolate rounded-xl text-xs font-mono tracking-widest uppercase transition-all duration-200 transform scale-90 group-hover:scale-100 cursor-pointer shadow-lg font-bold"
                     id={`quick-view-btn-${product.id}`}
                   >
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddToCart(product);
-                    }}
-                    className="p-3 bg-chocolate hover:bg-gold text-cream hover:text-chocolate rounded-full transition-all duration-200 transform scale-90 group-hover:scale-100 cursor-pointer shadow-lg"
-                    title={isAvailable ? "Add to Cart" : "Unavailable"}
-                    id={`add-to-cart-btn-${product.id}`}
-                  >
-                    <ShoppingBag className="w-4 h-4" />
+                    Explore Collection
                   </button>
                 </div>
               </div>
 
               <div className="text-center w-full px-2" id={`card-info-${product.id}`}>
                 <h4
-                  className="font-serif text-xl font-normal text-chocolate hover:text-chocolate-light transition-colors cursor-pointer tracking-wide"
-                  onClick={() => onSelectProduct(product)}
+                  className="font-serif text-2xl font-normal text-chocolate hover:text-gold transition-colors cursor-pointer tracking-wide uppercase"
+                  onClick={() => onSelectCollection(product.collectionCategory)}
                   id={`card-title-${product.id}`}
                 >
                   {product.name}
                 </h4>
+                <p className="text-[10px] font-mono tracking-[0.3em] uppercase text-chocolate/50 mt-1 select-none">
+                  View {product.name} Catalog
+                </p>
                 <div className="w-8 h-[1px] bg-chocolate/10 mx-auto mt-6" />
               </div>
             </motion.div>

@@ -13,7 +13,7 @@ export const PRODUCTS: Product[] = [
       "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80",
       "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=600&q=80"
     ],
-    category: "Apparel",
+    category: "Tracksuits",
     collectionCategory: "Apparel",
     description: "Expertly tailored relaxed-fit apparel made from lightweight Malawian-sourced fabric. Features double pleats, comfortable side pockets, and custom organic fastenings. Designed for ultimate versatility and effortless elegance.",
     sizes: ["XS", "S", "M", "L", "XL"],
@@ -44,8 +44,8 @@ export const PRODUCTS: Product[] = [
       "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80",
       "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80"
     ],
-    category: "Accessories",
-    collectionCategory: "Accessories",
+    category: "Sling bags",
+    collectionCategory: "Bags & Accessories",
     description: "An elegant, minimalist accessory designed as a physical representation of the KNQR spirit—unyielding, ambitious, and bold. Hand-polished to a reflective mirror finish, built to elevate any curated look.",
     sizes: ["One Size"],
     colors: ["24K Gold Plated"],
@@ -74,7 +74,7 @@ export const PRODUCTS: Product[] = [
       "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=600&q=80",
       "https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=600&q=80"
     ],
-    category: "Apparel",
+    category: "Perfumes",
     collectionCategory: "Fragrances",
     description: "An evocative, premium-grade signature fragrance with a sophisticated fluid character. Crafted with clean natural notes. Perfect for transitioning seamlessly from creative workspace to high-end evening experiences.",
     sizes: ["50ml", "100ml"],
