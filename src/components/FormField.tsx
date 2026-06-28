@@ -19,7 +19,8 @@ export default function FormField({
 }: FormFieldProps) {
   const { key, label, type, required, placeholder, helpText, options = [] } = field;
 
-  // Custom styling for numbers
+  if (type === "image[]") return null;
+
   const renderNumberInput = () => {
     const isUSD = key === "priceUSD";
     const isMWK = key === "priceMWK";
@@ -34,6 +35,7 @@ export default function FormField({
         )}
         <input
           type="number"
+          inputMode="numeric"
           value={value !== null && value !== undefined ? value : ""}
           onChange={(e) => {
             const raw = e.target.value;
@@ -48,15 +50,21 @@ export default function FormField({
     );
   };
 
-  const renderRadioInput = () => {
+  const renderToggleGroup = () => {
+    const normalizedOptions = options.map((opt) => String(opt));
+
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {options.map((opt) => {
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="radiogroup" aria-label={label}>
+        {normalizedOptions.map((opt) => {
           const isSelected = value === opt;
+          const displayText = opt.split("_").join(" ");
+
           return (
             <button
               key={opt}
               type="button"
+              role="radio"
+              aria-checked={isSelected}
               onClick={() => onChange(opt)}
               className={`py-2 px-3 text-xs tracking-wider rounded-xl border font-mono uppercase transition-all cursor-pointer select-none ${
                 isSelected
@@ -64,7 +72,7 @@ export default function FormField({
                   : "bg-chocolate border border-cream/15 text-cream/60 hover:border-cream/30 hover:text-cream"
               }`}
             >
-              {opt.replace("_", " ")}
+              {displayText}
             </button>
           );
         })}
@@ -93,7 +101,7 @@ export default function FormField({
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            rows={key === "description" ? 4 : 2}
+            rows={key === "description" ? 4 : 3}
             className={`w-full bg-chocolate border rounded-xl px-4 py-3 text-sm text-cream focus:outline-none focus:border-gold transition-colors placeholder-cream/30 resize-none ${
               error ? "border-rose-400" : "border-cream/15"
             }`}
@@ -114,7 +122,7 @@ export default function FormField({
         );
 
       case "radio":
-        return renderRadioInput();
+        return renderToggleGroup();
 
       case "multiselect":
         return (
@@ -128,6 +136,7 @@ export default function FormField({
         );
 
       case "checkbox":
+      case "boolean":
         return (
           <div className="flex items-center space-x-3 py-1">
             <input
@@ -138,7 +147,7 @@ export default function FormField({
               className="w-4 h-4 rounded border-cream/15 bg-chocolate text-gold focus:ring-gold focus:ring-offset-chocolate cursor-pointer"
             />
             <label htmlFor={key} className="text-xs text-cream/80 cursor-pointer select-none font-sans">
-              Enable {label}
+              {label}
             </label>
           </div>
         );
@@ -147,9 +156,6 @@ export default function FormField({
         return null;
     }
   };
-
-  // We handle `image[]` separately via ProductImageUploader, so skip it here
-  if (type === "image[]") return null;
 
   return (
     <div id={`field-group-${key}`} className="space-y-2">
@@ -168,9 +174,7 @@ export default function FormField({
         </p>
       )}
 
-      {error && (
-        <p className="text-xs text-rose-400 font-mono tracking-wide">{error}</p>
-      )}
+      {error && <p className="text-xs text-rose-400 font-mono tracking-wide">{error}</p>}
     </div>
   );
 }
