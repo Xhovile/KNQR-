@@ -70,18 +70,7 @@ export default function Collection({
                   id={`card-img-${product.id}`}
                 />
 
-                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                  <span className="inline-flex items-center rounded-full bg-chocolate text-cream px-3 py-1 text-[10px] font-semibold tracking-[0.25em] uppercase shadow-lg">
-                    {product.collectionCategory}
-                  </span>
-                  <span
-                    className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.25em] uppercase shadow-lg ${
-                      isAvailable ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
-                    }`}
-                  >
-                    {statusLabel}
-                  </span>
-                </div>
+                {/* Removed top left overlay captions */}
 
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-[10px] font-bold tracking-[0.25em] uppercase text-cream/90 z-10">
                   <span>{product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</span>
@@ -125,7 +114,6 @@ export default function Collection({
                 >
                   {product.name}
                 </h4>
-                <p className="mt-2 text-sm text-chocolate/70">{displayPrice}</p>
                 <div className="w-8 h-[1px] bg-chocolate/10 mx-auto mt-6" />
               </div>
             </motion.div>
