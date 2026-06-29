@@ -19,6 +19,7 @@ import Shop from "./Shop";
 import ApparelPage from "./ApparelPage";
 import BagsAndAccessoriesPage from "./BagsAndAccessoriesPage";
 import FragrancesPage from "./FragrancesPage";
+import ContactPage from "./ContactPage";
 import Skeleton from "./components/Skeleton";
 import { ProductDraftValues } from "./productSchema";
 
@@ -202,10 +203,7 @@ export default function App() {
     } else if (tab === "shop") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (tab === "contact") {
-      const contactEl = document.getElementById("knqr-footer-section");
-      if (contactEl) {
-        contactEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -420,6 +418,17 @@ export default function App() {
                     priceCurrency={priceCurrency}
                     onBackToHome={handleGoBack}
                   />
+                </motion.div>
+              ) : activeTab === "contact" ? (
+                <motion.div
+                  key="contact-view"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex flex-col flex-grow bg-light-brown text-chocolate border-b border-chocolate/5"
+                >
+                  <ContactPage />
                 </motion.div>
               ) : (
                 <motion.div
