@@ -25,7 +25,15 @@ import { ProductDraftValues } from "./productSchema";
 
 import { PRODUCTS } from "./data";
 import { Product, CartItem, ActiveTab } from "./types";
-import { fetchProducts, createProduct, updateProduct } from "./services/productService";
+import { 
+  fetchProducts, 
+  createProduct, 
+  updateProduct,
+  fetchHeroImages,
+  updateHeroImageInDb,
+  DEFAULT_HEROES,
+  HeroImages
+} from "./services/productService";
 
 export default function App() {
   const [productsList, setProductsList] = useState<Product[]>([]);
@@ -40,24 +48,42 @@ export default function App() {
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [heroImages, setHeroImages] = useState<HeroImages>(DEFAULT_HEROES);
 
-  // Load products from Firestore on boot
+  // Load products and hero images from Firestore on boot in parallel
   useEffect(() => {
-    async function loadProducts() {
+    async function initApp() {
       setIsLoadingProducts(true);
       try {
-        const fetched = await fetchProducts();
-        setProductsList(fetched);
+        const [fetchedProducts, fetchedHeroes] = await Promise.all([
+          fetchProducts(),
+          fetchHeroImages()
+        ]);
+        setProductsList(fetchedProducts);
+        setHeroImages(fetchedHeroes);
         setProductsError(null);
       } catch (err: any) {
-        console.error("Failed to load products from Firestore:", err);
-        setProductsError(err?.message || "An error occurred while loading products.");
+        console.error("Failed to load initial bespoke catalog data:", err);
+        setProductsError(err?.message || "An error occurred while loading catalog.");
       } finally {
         setIsLoadingProducts(false);
       }
     }
-    loadProducts();
+    initApp();
   }, []);
+
+  const handleUpdateHeroImage = async (page: keyof HeroImages, url: string) => {
+    try {
+      await updateHeroImageInDb(page, url);
+      setHeroImages((prev) => ({
+        ...prev,
+        [page]: url
+      }));
+    } catch (err) {
+      console.error(`Failed to update hero image for page ${page}:`, err);
+      alert("Failed to save customizable hero image. Please try again.");
+    }
+  };
 
   const transitionTo = (
     tab: ActiveTab,
@@ -434,6 +460,8 @@ export default function App() {
                     wishlist={wishlist}
                     priceCurrency={priceCurrency}
                     onBackToHome={handleGoBack}
+                    heroImage={heroImages.apparel}
+                    onUpdateHeroImage={(url) => handleUpdateHeroImage("apparel", url)}
                   />
                 </motion.div>
               ) : activeTab === "bags-accessories" ? (
@@ -453,6 +481,8 @@ export default function App() {
                     wishlist={wishlist}
                     priceCurrency={priceCurrency}
                     onBackToHome={handleGoBack}
+                    heroImage={heroImages.bagsAccessories}
+                    onUpdateHeroImage={(url) => handleUpdateHeroImage("bagsAccessories", url)}
                   />
                 </motion.div>
               ) : activeTab === "fragrances" ? (
@@ -472,6 +502,8 @@ export default function App() {
                     wishlist={wishlist}
                     priceCurrency={priceCurrency}
                     onBackToHome={handleGoBack}
+                    heroImage={heroImages.fragrances}
+                    onUpdateHeroImage={(url) => handleUpdateHeroImage("fragrances", url)}
                   />
                 </motion.div>
               ) : activeTab === "contact" ? (
@@ -495,7 +527,11 @@ export default function App() {
                   className="flex flex-col"
                 >
                   {/* 3. Hero Section */}
-                  <Hero onShopClick={() => transitionTo("shop", null, false, null)} />
+                  <Hero 
+                    onShopClick={() => transitionTo("shop", null, false, null)} 
+                    heroImage={heroImages.home}
+                    onUpdateHeroImage={(url) => handleUpdateHeroImage("home", url)}
+                  />
 
                   {/* 4. Featured Collections Shelf */}
                   <Collection

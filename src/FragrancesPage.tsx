@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, SlidersHorizontal, Sparkles, ArrowUpDown } from "lucide-react";
 import { Product } from "./types";
 import ProductCard from "./components/ProductCard";
+import EditableHeroImage from "./components/EditableHeroImage";
 
 interface FragrancesPageProps {
   products: Product[];
@@ -12,6 +13,8 @@ interface FragrancesPageProps {
   wishlist: string[];
   priceCurrency: "USD" | "MWK";
   onBackToHome: () => void;
+  heroImage: string;
+  onUpdateHeroImage: (url: string) => Promise<void>;
 }
 
 export default function FragrancesPage({
@@ -22,6 +25,8 @@ export default function FragrancesPage({
   wishlist,
   priceCurrency,
   onBackToHome,
+  heroImage,
+  onUpdateHeroImage,
 }: FragrancesPageProps) {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,13 +97,7 @@ export default function FragrancesPage({
   }, [fragranceProducts, selectedSubcategory, searchQuery, sortBy, priceCurrency]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 15 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow"
-    >
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
       {/* Back to Home Button */}
       <button
         onClick={onBackToHome}
@@ -118,14 +117,13 @@ export default function FragrancesPage({
             </h1>
           </div>
 
-          <div className="lg:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden luxury-border shadow-md bg-chocolate-light/5">
-            <img
-              src="/src/assets/images/knqr_fragrance_new_1782625278359.jpg"
+          <div className="lg:col-span-5">
+            <EditableHeroImage
+              src={heroImage}
+              onSave={onUpdateHeroImage}
               alt="Fragrance perfume bottle campaign asset"
-              className="w-full h-full object-cover object-center"
-              referrerPolicy="no-referrer"
+              aspectClass="aspect-[4/3]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-chocolate-dark/20 via-transparent to-transparent pointer-events-none" />
           </div>
         </div>
       </section>
@@ -307,6 +305,6 @@ export default function FragrancesPage({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, SlidersHorizontal, Sparkles, ArrowUpDown } from "lucide-react";
 import { Product } from "./types";
 import ProductCard from "./components/ProductCard";
+import EditableHeroImage from "./components/EditableHeroImage";
 
 interface ApparelPageProps {
   products: Product[];
@@ -12,6 +13,8 @@ interface ApparelPageProps {
   wishlist: string[];
   priceCurrency: "USD" | "MWK";
   onBackToHome: () => void;
+  heroImage: string;
+  onUpdateHeroImage: (url: string) => Promise<void>;
 }
 
 export default function ApparelPage({
@@ -22,6 +25,8 @@ export default function ApparelPage({
   wishlist,
   priceCurrency,
   onBackToHome,
+  heroImage,
+  onUpdateHeroImage,
 }: ApparelPageProps) {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,13 +107,7 @@ export default function ApparelPage({
   }, [apparelProducts, selectedSubcategory, searchQuery, sortBy, priceCurrency]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 15 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow"
-    >
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
       {/* Back to Home Button */}
       <button
         onClick={onBackToHome}
@@ -128,14 +127,13 @@ export default function ApparelPage({
             </h1>
           </div>
 
-          <div className="lg:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden luxury-border shadow-md bg-chocolate-light/5">
-            <img
-              src="/src/assets/images/knqr_black_shirt_1782625829276.jpg"
+          <div className="lg:col-span-5">
+            <EditableHeroImage
+              src={heroImage}
+              onSave={onUpdateHeroImage}
               alt="Apparel Campaign model wearing premium knitwear"
-              className="w-full h-full object-cover object-center"
-              referrerPolicy="no-referrer"
+              aspectClass="aspect-[4/3]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-chocolate-dark/20 via-transparent to-transparent pointer-events-none" />
           </div>
         </div>
       </section>
@@ -317,6 +315,6 @@ export default function ApparelPage({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

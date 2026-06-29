@@ -1,74 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ArrowRight, Image as ImageIcon } from "lucide-react";
+import React from "react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
+import EditableHeroImage from "./EditableHeroImage";
 
 interface HeroProps {
   onShopClick: () => void;
+  heroImage: string;
+  onUpdateHeroImage: (url: string) => Promise<void>;
 }
 
-export default function Hero({ onShopClick }: HeroProps) {
-  const [heroImage, setHeroImage] = useState<string>(
-    () => localStorage.getItem("knqr_custom_hero_image") || "/src/assets/images/knqr_black_shirt_1782625829276.jpg"
-  );
-  const [showEditButton, setShowEditButton] = useState(false);
-  const [tempImage, setTempImage] = useState<string | null>(null);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startLongPress = () => {
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-    longPressTimerRef.current = setTimeout(() => {
-      setShowEditButton(true);
-    }, 600); // 600ms long press threshold
-  };
-
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-    };
-  }, []);
-
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTempImage(reader.result as string);
-        setShowConfirmDialog(true);
-        setShowEditButton(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleConfirmSave = () => {
-    if (tempImage) {
-      setHeroImage(tempImage);
-      localStorage.setItem("knqr_custom_hero_image", tempImage);
-    }
-    setTempImage(null);
-    setShowConfirmDialog(false);
-  };
-
-  const handleCancelConfirm = () => {
-    setTempImage(null);
-    setShowConfirmDialog(false);
-  };
-
+export default function Hero({ onShopClick, heroImage, onUpdateHeroImage }: HeroProps) {
   return (
     <section 
       className="relative min-h-[55vh] flex flex-col justify-center items-center px-6 py-6 overflow-hidden border-b-4 border-chocolate bg-white"
@@ -96,113 +37,15 @@ export default function Hero({ onShopClick }: HeroProps) {
       </div>
 
       <div className="relative z-10 w-full max-w-lg flex flex-col items-center">
-        {/* Large Portrait Lifestyle Image with Rounded Corners */}
-        <motion.div 
-          className="relative w-full aspect-[3/2] mb-5 rounded-2xl overflow-hidden luxury-border luxury-glow group bg-chocolate-light cursor-pointer select-none"
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.1 }}
-          id="hero-image-container"
-          onMouseDown={startLongPress}
-          onMouseUp={cancelLongPress}
-          onMouseLeave={cancelLongPress}
-          onTouchStart={startLongPress}
-          onTouchEnd={cancelLongPress}
-        >
-          {/* Subtle background color block for image loading */}
-          <img
+        {/* Reusable Editable Portrait Lifestyle Image */}
+        <div className="w-full mb-5">
+          <EditableHeroImage
             src={heroImage}
+            onSave={onUpdateHeroImage}
             alt="KNQR Premium Lifestyle Campaign Model"
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
-            referrerPolicy="no-referrer"
-            loading="eager"
-            id="hero-lifestyle-img"
+            aspectClass="aspect-[3/2]"
           />
-          
-          {/* Hidden file input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-            id="hero-image-uploader"
-          />
-
-          {/* Edit button pop-up overlay */}
-          {showEditButton && (
-            <div className="absolute inset-0 bg-chocolate/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-20 space-y-3">
-              <span className="p-2 bg-gold/10 text-gold rounded-full">
-                <ImageIcon className="w-5 h-5" />
-              </span>
-              <p className="text-xs font-mono text-gold tracking-widest uppercase">Admin Controls</p>
-              <button
-                onClick={handleEditClick}
-                className="px-5 py-2.5 bg-cream hover:bg-gold text-chocolate font-bold rounded-xl text-xs font-mono tracking-widest uppercase transition-all cursor-pointer shadow-md"
-                id="hero-edit-image-btn"
-              >
-                Change Hero Image
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowEditButton(false);
-                }}
-                className="text-xs font-mono text-cream/70 hover:text-cream underline uppercase tracking-widest cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {/* Luxury dark gradient overlay to give a premium feel */}
-          <div className="absolute inset-0 bg-gradient-to-t from-chocolate via-chocolate/5 to-transparent opacity-45 pointer-events-none" />
-          
-          {/* Ambient Corner Accents */}
-          <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-gold/40 rounded-tl-sm" />
-          <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-gold/40 rounded-tr-sm" />
-          <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-gold/40 rounded-bl-sm" />
-          <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-gold/40 rounded-br-sm" />
-        </motion.div>
-
-        {/* Confirmation Modal Overlay */}
-        {showConfirmDialog && tempImage && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-chocolate-dark/95 backdrop-blur-md p-6">
-            <div className="max-w-md w-full bg-chocolate border border-cream/15 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden text-cream space-y-6">
-              <h3 className="font-serif text-xl tracking-wide text-cream">
-                Confirm New Hero Image?
-              </h3>
-              <p className="text-[10px] font-mono text-gold tracking-widest uppercase">
-                Preview of selected image
-              </p>
-              
-              <div className="relative w-full aspect-[3/2] rounded-xl overflow-hidden border border-cream/15 bg-chocolate-light/50 shadow-inner">
-                <img
-                  src={tempImage}
-                  alt="New Hero Preview"
-                  className="w-full h-full object-cover object-center"
-                />
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={handleCancelConfirm}
-                  className="flex-1 py-3 border border-cream/15 hover:border-cream/35 rounded-xl text-xs font-mono tracking-wider uppercase text-cream/70 hover:text-cream transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmSave}
-                  className="flex-1 py-3 bg-cream hover:bg-gold text-chocolate font-bold rounded-xl text-xs font-mono tracking-wider uppercase transition-all cursor-pointer"
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
 
         {/* Text Area */}
         <div className="text-center max-w-md px-2 relative mt-4" id="hero-text-content">
