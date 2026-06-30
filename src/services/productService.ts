@@ -138,15 +138,24 @@ export async function fetchProducts(): Promise<Product[]> {
     const q = query(productsCol);
     const querySnapshot = await getDocs(q);
     
-    if (querySnapshot.empty) {
-      console.log("Firestore products collection is empty. Seeding initial products...");
-      await seedInitialProducts();
-      // Fetch again after seeding
-      const seededSnapshot = await getDocs(q);
-      return seededSnapshot.docs.map(doc => doc.data() as Product);
+    let products = querySnapshot.docs.map(doc => doc.data() as Product);
+    
+    // Automatically delete old hardcoded products from Firestore to keep the DB 100% fresh
+    const hardcodedIds = ["knqr-trousers", "knqr-necklace", "knqr-blouse"];
+    const foundHardcoded = products.filter(p => hardcodedIds.includes(p.id));
+    if (foundHardcoded.length > 0) {
+      console.log("Removing legacy hardcoded products from Firestore...");
+      for (const p of foundHardcoded) {
+        try {
+          await deleteDoc(doc(db, PRODUCTS_COLLECTION, p.id));
+        } catch (e) {
+          console.error(`Failed to delete legacy product ${p.id}:`, e);
+        }
+      }
+      products = products.filter(p => !hardcodedIds.includes(p.id));
     }
     
-    return querySnapshot.docs.map(doc => doc.data() as Product);
+    return products;
   } catch (error: any) {
     if (error?.message?.includes("permission") || error?.code === "permission-denied") {
       handleFirestoreError(error, OperationType.GET, path);
