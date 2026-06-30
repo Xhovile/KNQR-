@@ -257,40 +257,28 @@ export default function ContactPage() {
         {/* 2. Left Column: Direct Contact Info & Map */}
         <div className="lg:col-span-5 space-y-8">
           
-          <div className="bg-white/50 border border-chocolate/10 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
+          <div className="bg-white/50 border border-chocolate/10 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm">
             <h3 className="text-lg font-serif text-chocolate tracking-wide border-b border-chocolate/10 pb-3">
               CONTACT INFORMATION
             </h3>
 
-            {/* Direct Cards */}
             <div className="space-y-6">
               
-              {/* Call Us */}
+              {/* Phone & WhatsApp */}
               <div className="flex items-start space-x-4">
-                <div className="p-3 bg-chocolate/5 rounded-xl border border-chocolate/10 text-gold mt-1">
+                <div className="p-3 bg-chocolate/5 rounded-xl border border-chocolate/10 text-gold mt-1 shrink-0">
                   <Phone className="w-5 h-5" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[11px] font-mono tracking-wider text-chocolate/50 uppercase">📞 Call Us</p>
-                  <p className="text-base font-semibold text-chocolate">+265 883 184 144</p>
-                </div>
-              </div>
-
-              {/* WhatsApp */}
-              <div className="flex items-start space-x-4">
-                <div className="p-3 bg-[#25d366]/10 rounded-xl border border-[#25d366]/20 text-[#25d366] mt-1">
-                  <MessageCircle className="w-5 h-5" />
                 </div>
                 <div className="space-y-2 flex-grow">
                   <div>
-                    <p className="text-[11px] font-mono tracking-wider text-chocolate/50 uppercase">💬 WhatsApp</p>
+                    <p className="text-[11px] font-mono tracking-wider text-chocolate/50 uppercase">📞 Call & WhatsApp</p>
                     <p className="text-base font-semibold text-chocolate">+265 883 184 144</p>
                   </div>
                   <a 
                     href="https://wa.me/265883184144" 
                     target="_blank" 
                     rel="noreferrer"
-                    className="inline-flex items-center space-x-2 bg-[#25d366] hover:bg-[#20ba59] text-white text-xs font-mono tracking-wider uppercase px-4 py-2 rounded-xl transition-all shadow-md font-bold cursor-pointer select-none"
+                    className="inline-flex items-center space-x-2 bg-chocolate text-cream hover:bg-gold hover:text-chocolate text-xs font-mono tracking-wider uppercase px-4 py-2 rounded-xl transition-all shadow-sm font-bold cursor-pointer select-none border border-chocolate"
                     id="contact-whatsapp-btn"
                   >
                     <span>Chat on WhatsApp</span>
@@ -301,17 +289,17 @@ export default function ContactPage() {
 
               {/* Email */}
               <div className="flex items-start space-x-4">
-                <div className="p-3 bg-[#ea4335]/10 rounded-xl border border-[#ea4335]/20 text-[#ea4335] mt-1">
+                <div className="p-3 bg-chocolate/5 rounded-xl border border-chocolate/10 text-gold mt-1 shrink-0">
                   <Mail className="w-5 h-5" />
                 </div>
                 <div className="space-y-2 flex-grow">
                   <div>
-                    <p className="text-[11px] font-mono tracking-wider text-chocolate/50 uppercase">✉️ Email</p>
+                    <p className="text-[11px] font-mono tracking-wider text-chocolate/50 uppercase">✉️ Email Enquiry</p>
                     <p className="text-base font-semibold text-chocolate">knqronline@gmail.com</p>
                   </div>
                   <a 
                     href="mailto:knqronline@gmail.com"
-                    className="inline-flex items-center space-x-2 bg-chocolate text-cream hover:bg-gold hover:text-chocolate text-xs font-mono tracking-wider uppercase px-4 py-2 rounded-xl transition-all shadow-md font-bold cursor-pointer select-none border border-chocolate"
+                    className="inline-flex items-center space-x-2 bg-chocolate text-cream hover:bg-gold hover:text-chocolate text-xs font-mono tracking-wider uppercase px-4 py-2 rounded-xl transition-all shadow-sm font-bold cursor-pointer select-none border border-chocolate"
                     id="contact-email-btn"
                   >
                     <span>Send an Email</span>
@@ -322,21 +310,22 @@ export default function ContactPage() {
 
               {/* Visit store */}
               <div className="flex items-start space-x-4">
-                <div className="p-3 bg-chocolate/5 rounded-xl border border-chocolate/10 text-gold mt-1">
+                <div className="p-3 bg-chocolate/5 rounded-xl border border-chocolate/10 text-gold mt-1 shrink-0">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div className="space-y-2 flex-grow">
                   <div>
-                    <p className="text-[11px] font-mono tracking-wider text-chocolate/50 uppercase">📍 Visit Our Store</p>
+                    <p className="text-[11px] font-mono tracking-wider text-chocolate/50 uppercase">📍 Flagship Outlet</p>
                     <p className="text-sm font-semibold text-chocolate leading-snug">
                       KNQR Outlet<br />Blantyre, Malawi
                     </p>
+                    <p className="text-xs font-mono text-chocolate/50 italic mt-1">Hours: Coming soon</p>
                   </div>
                   <a 
                     href="https://maps.google.com/?q=Blantyre,Malawi"
                     target="_blank" 
                     rel="noreferrer"
-                    className="inline-flex items-center space-x-2 bg-white hover:bg-chocolate hover:text-white text-xs font-mono tracking-wider uppercase px-4 py-2 rounded-xl transition-all shadow-md font-bold border border-chocolate/20 cursor-pointer select-none"
+                    className="inline-flex items-center space-x-2 bg-white/80 hover:bg-chocolate hover:text-white text-xs font-mono tracking-wider uppercase px-4 py-2 rounded-xl transition-all shadow-sm font-bold border border-chocolate/20 cursor-pointer select-none"
                     id="contact-directions-btn"
                   >
                     <span>Get Directions</span>
@@ -346,35 +335,21 @@ export default function ContactPage() {
               </div>
 
             </div>
-          </div>
-
-          {/* Store information box */}
-          <div className="bg-white/30 border border-chocolate/5 rounded-2xl p-6 space-y-4">
-            <h4 className="text-sm font-mono tracking-widest uppercase text-gold font-bold">
-              STORE INFORMATION
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="space-y-1">
-                <p className="font-semibold text-chocolate/50 uppercase font-mono text-[10px]">Location</p>
-                <p className="text-chocolate font-medium">KNQR Outlet<br />Blantyre, Malawi</p>
-              </div>
-              <div className="space-y-1">
-                <p className="font-semibold text-chocolate/50 uppercase font-mono text-[10px]">Business Hours</p>
-                <p className="text-chocolate font-medium italic">Business hours coming soon.</p>
-              </div>
-            </div>
 
             {/* Embedded Live Google Maps */}
-            <div className="w-full aspect-video rounded-xl overflow-hidden border border-chocolate/10 bg-chocolate/5 shadow-inner mt-4 relative">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d122604.4069818826!2d34.93510525251642!3d-15.786111162451558!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18db43f4b46231d5%3A0x67db23a496837130!2sBlantyre!5e0!3m2!1sen!2smw!4v1782620000000!5m2!1sen!2smw" 
-                className="absolute inset-0 w-full h-full border-0" 
-                allowFullScreen={false} 
-                loading="lazy" 
-                title="Google Maps Embed Blantyre Malawi"
-                referrerPolicy="no-referrer-when-downgrade"
-                id="contact-google-map"
-              />
+            <div className="pt-6 border-t border-chocolate/10 space-y-3">
+              <p className="text-[10px] font-mono tracking-[0.25em] text-chocolate/50 uppercase">🗺️ Locate Blantyre Store</p>
+              <div className="w-full aspect-video rounded-xl overflow-hidden border border-chocolate/10 bg-chocolate/5 shadow-inner relative">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d122604.4069818826!2d34.93510525251642!3d-15.786111162451558!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18db43f4b46231d5%3A0x67db23a496837130!2sBlantyre!5e0!3m2!1sen!2smw!4v1782620000000!5m2!1sen!2smw" 
+                  className="absolute inset-0 w-full h-full border-0" 
+                  allowFullScreen={false} 
+                  loading="lazy" 
+                  title="Google Maps Embed Blantyre Malawi"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  id="contact-google-map"
+                />
+              </div>
             </div>
           </div>
 
