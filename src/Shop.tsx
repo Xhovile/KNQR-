@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import { Search, SlidersHorizontal, ArrowUpDown, RefreshCw, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Product } from "./types";
@@ -24,6 +24,7 @@ export default function Shop({
   priceCurrency,
 }: ShopProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<SortOption>("modified-new");
   const [showFilters, setShowFilters] = useState(false);
@@ -34,6 +35,11 @@ export default function Shop({
     const list = products.map((p) => p.collectionCategory || p.category || "Apparel");
     const unique = Array.from(new Set(list));
     return ["All", ...unique];
+  }, [products]);
+
+  // Precomputed order map for stable O(1) index lookup
+  const productOrder = useMemo(() => {
+    return new Map(products.map((p, index) => [p.id, index]));
   }, [products]);
 
   // Filter and sort products
@@ -48,8 +54,8 @@ export default function Shop({
     }
 
     // 2. Search Filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    const q = deferredSearchQuery.trim().toLowerCase();
+    if (q) {
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
@@ -75,10 +81,10 @@ export default function Shop({
         });
         break;
       case "modified-new":
-        result.sort((a, b) => products.indexOf(a) - products.indexOf(b));
+        result.sort((a, b) => (productOrder.get(a.id) ?? 0) - (productOrder.get(b.id) ?? 0));
         break;
       case "modified-old":
-        result.sort((a, b) => products.indexOf(b) - products.indexOf(a));
+        result.sort((a, b) => (productOrder.get(b.id) ?? 0) - (productOrder.get(a.id) ?? 0));
         break;
       case "delivery-available":
         result.sort((a, b) => {
@@ -101,7 +107,7 @@ export default function Shop({
     }
 
     return result;
-  }, [products, selectedCategory, searchQuery, sortBy, priceCurrency]);
+  }, [products, selectedCategory, deferredSearchQuery, sortBy, priceCurrency, productOrder]);
 
   const handleResetFilters = () => {
     setSearchQuery("");

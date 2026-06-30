@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, SlidersHorizontal, Sparkles, ArrowUpDown } from "lucide-react";
 import { Product } from "./types";
@@ -30,6 +30,7 @@ export default function ApparelPage({
 }: ApparelPageProps) {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sortBy, setSortBy] = useState<string>("price-desc");
   const [showFilters, setShowFilters] = useState(false);
   const [showSort, setShowSort] = useState(false);
@@ -51,6 +52,11 @@ export default function ApparelPage({
     return products.filter((p) => (p.collectionCategory || "").toLowerCase() === "apparel");
   }, [products]);
 
+  // Precomputed order map for stable O(1) index lookup
+  const apparelOrder = useMemo(() => {
+    return new Map(apparelProducts.map((p, index) => [p.id, index]));
+  }, [apparelProducts]);
+
   // Apply filters and sort
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...apparelProducts];
@@ -63,8 +69,8 @@ export default function ApparelPage({
     }
 
     // Search Filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    const q = deferredSearchQuery.trim().toLowerCase();
+    if (q) {
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
@@ -90,11 +96,10 @@ export default function ApparelPage({
         });
         break;
       case "modified-new":
-        // Sort by id / newest mock
-        result.sort((a, b) => b.id.localeCompare(a.id));
+        result.sort((a, b) => (apparelOrder.get(b.id) ?? 0) - (apparelOrder.get(a.id) ?? 0));
         break;
       case "modified-old":
-        result.sort((a, b) => a.id.localeCompare(b.id));
+        result.sort((a, b) => (apparelOrder.get(a.id) ?? 0) - (apparelOrder.get(b.id) ?? 0));
         break;
       case "delivery-available":
         result = result.filter((p) => p.delivery?.available);
@@ -105,7 +110,7 @@ export default function ApparelPage({
     }
 
     return result;
-  }, [apparelProducts, selectedSubcategory, searchQuery, sortBy, priceCurrency]);
+  }, [apparelProducts, selectedSubcategory, deferredSearchQuery, sortBy, priceCurrency, apparelOrder]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">

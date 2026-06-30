@@ -11,7 +11,7 @@ interface ProductCardProps {
   key?: string;
 }
 
-export default function ProductCard({
+function ProductCard({
   product,
   onViewDetails,
   onAddToCart,
@@ -149,3 +149,5 @@ export default function ProductCard({
     </div>
   );
 }
+
+export default React.memo(ProductCard);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   ShoppingCart, 
   ArrowUp
@@ -197,11 +197,15 @@ export default function App() {
   }, [productsList]);
 
 
-  const handleToggleWishlist = (productId: string) => {
+  const handleToggleWishlist = useCallback((productId: string) => {
     setWishlist((prev) =>
       prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
-  };
+  }, []);
+
+  const handleViewDetails = useCallback((product: Product) => {
+    transitionTo(activeTab, product, false, null);
+  }, [activeTab]);
 
   // Monitor scroll for "back to top" button visibility
   useEffect(() => {
@@ -215,7 +219,7 @@ export default function App() {
     };
   }, []);
 
-  const handleAddToCart = (product: Product, quantity = 1, size?: string, color?: string) => {
+  const handleAddToCart = useCallback((product: Product, quantity = 1, size?: string, color?: string) => {
     setCart((prev) => {
       const existingIdx = prev.findIndex(
         (item) =>
@@ -232,7 +236,7 @@ export default function App() {
 
       return [...prev, { product, quantity, selectedSize: size, selectedColor: color }];
     });
-  };
+  }, []);
 
   const handleUpdateQuantity = (productId: string, quantity: number, size?: string, color?: string) => {
     setCart((prev) =>
@@ -498,7 +502,7 @@ export default function App() {
                 >
                   <Shop
                     products={productsList}
-                    onViewDetails={(product) => transitionTo(activeTab, product, false, null)}
+                    onViewDetails={handleViewDetails}
                     onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.name)}
                     onToggleWishlist={handleToggleWishlist}
                     wishlist={wishlist}
@@ -516,7 +520,7 @@ export default function App() {
                 >
                   <ApparelPage
                     products={productsList}
-                    onViewDetails={(product) => transitionTo(activeTab, product, false, null)}
+                    onViewDetails={handleViewDetails}
                     onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.value)}
                     onToggleWishlist={handleToggleWishlist}
                     wishlist={wishlist}
@@ -537,7 +541,7 @@ export default function App() {
                 >
                   <BagsAndAccessoriesPage
                     products={productsList}
-                    onViewDetails={(product) => transitionTo(activeTab, product, false, null)}
+                    onViewDetails={handleViewDetails}
                     onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.value)}
                     onToggleWishlist={handleToggleWishlist}
                     wishlist={wishlist}
@@ -558,7 +562,7 @@ export default function App() {
                 >
                   <FragrancesPage
                     products={productsList}
-                    onViewDetails={(product) => transitionTo(activeTab, product, false, null)}
+                    onViewDetails={handleViewDetails}
                     onAddToCart={(product, size, color) => handleAddToCart(product, 1, size, color.value)}
                     onToggleWishlist={handleToggleWishlist}
                     wishlist={wishlist}

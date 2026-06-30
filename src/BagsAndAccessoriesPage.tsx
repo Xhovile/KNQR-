@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, SlidersHorizontal, Sparkles, ArrowUpDown } from "lucide-react";
 import { Product } from "./types";
@@ -30,6 +30,7 @@ export default function BagsAndAccessoriesPage({
 }: BagsAndAccessoriesPageProps) {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sortBy, setSortBy] = useState<string>("price-desc");
   const [showFilters, setShowFilters] = useState(false);
   const [showSort, setShowSort] = useState(false);
@@ -52,6 +53,11 @@ export default function BagsAndAccessoriesPage({
     );
   }, [products]);
 
+  // Precomputed order map for stable O(1) index lookup
+  const bagsOrder = useMemo(() => {
+    return new Map(bagsProducts.map((p, index) => [p.id, index]));
+  }, [bagsProducts]);
+
   // Apply filters and sort
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...bagsProducts];
@@ -64,8 +70,8 @@ export default function BagsAndAccessoriesPage({
     }
 
     // Search Filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    const q = deferredSearchQuery.trim().toLowerCase();
+    if (q) {
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
@@ -91,10 +97,10 @@ export default function BagsAndAccessoriesPage({
         });
         break;
       case "modified-new":
-        result.sort((a, b) => b.id.localeCompare(a.id));
+        result.sort((a, b) => (bagsOrder.get(b.id) ?? 0) - (bagsOrder.get(a.id) ?? 0));
         break;
       case "modified-old":
-        result.sort((a, b) => a.id.localeCompare(b.id));
+        result.sort((a, b) => (bagsOrder.get(a.id) ?? 0) - (bagsOrder.get(b.id) ?? 0));
         break;
       case "delivery-available":
         result = result.filter((p) => p.delivery?.available);
@@ -105,7 +111,7 @@ export default function BagsAndAccessoriesPage({
     }
 
     return result;
-  }, [bagsProducts, selectedSubcategory, searchQuery, sortBy, priceCurrency]);
+  }, [bagsProducts, selectedSubcategory, deferredSearchQuery, sortBy, priceCurrency, bagsOrder]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
