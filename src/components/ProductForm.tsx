@@ -585,6 +585,9 @@ export default function ProductForm({
             </div>
           </div>
         </div>
+
+        {/* Extra bottom spacing to prevent overlapping with floating buttons and allow comfortable scrolling */}
+        <div className="h-32 lg:col-span-12" />
       </div>
 
       <FormActions

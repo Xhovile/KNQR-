@@ -29,6 +29,7 @@ import { auth } from "../lib/firebase";
 
 interface AuthFormProps {
   onSuccess?: (user: any) => void;
+  initialIsSignUp?: boolean;
 }
 
 const SANDBOX_CONFIG = `{
@@ -42,8 +43,12 @@ const SANDBOX_CONFIG = `{
   "measurementId": ""
 }`;
 
-export default function AuthForm({ onSuccess }: AuthFormProps) {
-  const [isSignUp, setIsSignUp] = useState(false);
+export default function AuthForm({ onSuccess, initialIsSignUp = false }: AuthFormProps) {
+  const [isSignUp, setIsSignUp] = useState(initialIsSignUp);
+
+  useEffect(() => {
+    setIsSignUp(initialIsSignUp);
+  }, [initialIsSignUp]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -351,11 +356,11 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             {loading ? (
               <>
                 <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
-                Securing Session...
+                Logging In...
               </>
             ) : (
               <span className="flex items-center gap-1">
-                {isSignUp ? "Create Account" : "Access Session"}
+                {isSignUp ? "Create Account" : "Log In"}
                 <ArrowRight className="w-3.5 h-3.5" />
               </span>
             )}
@@ -375,18 +380,23 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="flex items-center justify-center gap-2 px-3 py-2.5 border border-chocolate/10 bg-gray-50/50 rounded-xl text-xs font-mono uppercase hover:bg-chocolate hover:text-cream transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-chocolate rounded-xl text-xs font-mono uppercase shadow-xs transition-all cursor-pointer disabled:opacity-50"
           >
-            <Chrome className="w-3.5 h-3.5 text-chocolate/70" />
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+            </svg>
             Google
           </button>
           <button
             type="button"
             onClick={handleAppleSignIn}
             disabled={loading}
-            className="flex items-center justify-center gap-2 px-3 py-2.5 border border-chocolate/10 bg-gray-50/50 rounded-xl text-xs font-mono uppercase hover:bg-chocolate hover:text-cream transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-chocolate rounded-xl text-xs font-mono uppercase shadow-xs transition-all cursor-pointer disabled:opacity-50"
           >
-            <Apple className="w-3.5 h-3.5 text-chocolate/70" />
+            <Apple className="w-4 h-4 text-black fill-black shrink-0" />
             Apple
           </button>
         </div>
@@ -398,59 +408,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </div>
       </div>
 
-      {/* Troubleshooting & Database Recovery Panel */}
-      <div className="bg-amber-50/35 border border-amber-500/10 rounded-2xl p-5 shadow-sm text-chocolate space-y-4">
-        <button
-          onClick={() => setShowTroubleshoot(!showTroubleshoot)}
-          className="flex items-center justify-between w-full font-mono text-xs uppercase tracking-wider font-semibold hover:text-amber-700 transition-colors"
-        >
-          <span className="flex items-center gap-2">
-            <HelpCircle className="w-4 h-4 text-amber-600 animate-pulse" />
-            Active Project & Data Diagnostics
-          </span>
-          {showTroubleshoot ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {showTroubleshoot && (
-          <div className="space-y-4 text-xs font-mono leading-relaxed divide-y divide-amber-500/10">
-            <div className="pt-2">
-              <span className="font-semibold text-amber-800 uppercase text-[10px] block mb-1">🔍 Why are Sign-In / Sign-Up failing?</span>
-              <p className="text-[11px] text-chocolate/80">
-                You recently switched your Firebase configuration to <strong>knqr-online</strong>. In empty/new Firebase projects, authentication providers are disabled by default. 
-                Please go to your <strong className="text-amber-800">Firebase Console &gt; Authentication &gt; Sign-in method</strong> and enable the <strong>Email/Password</strong> provider.
-              </p>
-            </div>
-
-            <div className="pt-3">
-              <span className="font-semibold text-amber-800 uppercase text-[10px] block mb-1 flex items-center gap-1">
-                <Database className="w-3 h-3 text-amber-600" /> 
-                Why are my previous listings gone?
-              </span>
-              <p className="text-[11px] text-chocolate/80">
-                Your custom listings were stored in the original AI Studio Sandbox project. By switching to your own project (<strong>knqr-online</strong>), the app looks at a fresh, empty database.
-              </p>
-            </div>
-
-            <div className="pt-3 space-y-2">
-              <span className="font-semibold text-amber-800 uppercase text-[10px] block">💡 How to restore original sandbox data & sign in immediately?</span>
-              <p className="text-[11px] text-chocolate/80">
-                You can switch back to the sandbox database at any time. Simply copy the JSON configuration block below, open <strong>/firebase-applet-config.json</strong> in your code editor, paste it, and save.
-              </p>
-              
-              <div className="relative bg-white/85 border border-chocolate/15 rounded-lg p-2 text-[10px] overflow-x-auto max-h-36">
-                <button
-                  onClick={handleCopySandbox}
-                  className="absolute right-2 top-2 bg-chocolate text-cream hover:bg-gold hover:text-chocolate px-2 py-1 rounded text-[9px] font-mono transition-all flex items-center gap-1 uppercase"
-                >
-                  {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  {copied ? "Copied" : "Copy Config"}
-                </button>
-                <pre>{SANDBOX_CONFIG}</pre>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

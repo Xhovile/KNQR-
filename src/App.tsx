@@ -57,6 +57,7 @@ export default function App() {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [showAdminGuardModal, setShowAdminGuardModal] = useState(false);
   const [adminGuardAction, setAdminGuardAction] = useState<"add" | "edit" | "hero" | "restock" | "record_sale" | null>(null);
+  const [authInitialIsSignUp, setAuthInitialIsSignUp] = useState(false);
 
   const isAdmin = user && user.email === "xhovilepublications@gmail.com";
 
@@ -544,6 +545,7 @@ export default function App() {
               }}
               user={user}
               onSignOut={handleSignOut}
+              onAuthAction={(isSignUp) => setAuthInitialIsSignUp(isSignUp)}
             />
 
             <AnimatePresence mode="wait">
@@ -739,10 +741,13 @@ export default function App() {
                       </div>
                     </div>
                   ) : (
-                    <AuthForm onSuccess={(u) => {
-                      setUser(u);
-                      transitionTo("home");
-                    }} />
+                    <AuthForm 
+                      initialIsSignUp={authInitialIsSignUp}
+                      onSuccess={(u) => {
+                        setUser(u);
+                        transitionTo("home");
+                      }} 
+                    />
                   )}
                 </motion.div>
               ) : activeTab === "contact" ? (

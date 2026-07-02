@@ -10,9 +10,10 @@ interface NavigationProps {
   onCreateProduct?: () => void;
   user?: any;
   onSignOut?: () => void;
+  onAuthAction?: (isSignUp: boolean) => void;
 }
 
-export default function Navigation({ activeTab, setActiveTab, onNavigate, onCreateProduct, user, onSignOut }: NavigationProps) {
+export default function Navigation({ activeTab, setActiveTab, onNavigate, onCreateProduct, user, onSignOut, onAuthAction }: NavigationProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [activeNotification, setActiveNotification] = React.useState<string | null>(null);
 
@@ -31,6 +32,7 @@ export default function Navigation({ activeTab, setActiveTab, onNavigate, onCrea
       ]
     : [
         { label: "Sign In", icon: LogIn },
+        { label: "Sign Up", icon: User },
       ];
 
   const handlePlaceholderClick = (actionName: string) => {
@@ -39,7 +41,19 @@ export default function Navigation({ activeTab, setActiveTab, onNavigate, onCrea
       setDropdownOpen(false);
       return;
     }
-    if ((actionName === "Profile" || actionName === "Sign In")) {
+    if (actionName === "Profile" || actionName === "Sign In") {
+      if (onAuthAction) {
+        onAuthAction(false);
+      }
+      setActiveTab("auth");
+      onNavigate("auth");
+      setDropdownOpen(false);
+      return;
+    }
+    if (actionName === "Sign Up") {
+      if (onAuthAction) {
+        onAuthAction(true);
+      }
       setActiveTab("auth");
       onNavigate("auth");
       setDropdownOpen(false);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Minus, Plus, ShoppingCart, Check, MoreHorizontal, X, Pencil, PackagePlus, BadgePercent, Share2, Sparkles, MessageCircle } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingCart, Check, MoreHorizontal, X, Pencil, PackagePlus, BadgePercent, Share2, Sparkles, MessageCircle, ShoppingBag } from "lucide-react";
 import { Product } from "./types";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -214,7 +214,7 @@ export default function ProductDetailPage({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="min-h-screen bg-light-brown text-chocolate flex flex-col"
+      className="min-h-screen bg-light-brown text-chocolate flex flex-col pb-36"
       id="product-detail-page-container"
     >
       <div className="border-b border-chocolate/10 bg-white/40 backdrop-blur-md sticky top-0 z-30 py-4 px-6 md:px-12 flex items-center justify-between text-chocolate">
@@ -536,6 +536,18 @@ export default function ProductDetailPage({
                 </button>
               </div>
             </div>
+
+            <button
+              onClick={() => {
+                setActiveNotification("Direct Card payment integration is currently offline. Please use Add to Cart or WhatsApp checkout.");
+                setTimeout(() => setActiveNotification(null), 4000);
+              }}
+              className="w-full py-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-cream transition-all duration-300 flex items-center justify-center space-x-3 cursor-pointer shadow-xl font-sans text-xs tracking-[0.3em] uppercase font-semibold hover:scale-[1.01]"
+              id="detail-buy-now-cta"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>Buy Now</span>
+            </button>
 
             <button
               onClick={handleAddToCart}
