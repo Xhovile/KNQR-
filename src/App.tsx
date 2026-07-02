@@ -73,8 +73,8 @@ export default function App() {
       await auth.signOut();
       setUser(null);
       transitionTo("home");
-    } catch (err) {
-      console.error("Failed to sign out:", err);
+    } catch (err: any) {
+      console.error("Failed to sign out:", err?.message || String(err));
     }
   };
 
@@ -95,7 +95,7 @@ export default function App() {
       // fetch hero images after first paint
       fetchHeroImages()
         .then(setHeroImages)
-        .catch((err) => console.error("Failed to load hero images:", err));
+        .catch((err) => console.error("Failed to load hero images:", err?.message || String(err)));
     }
 
     initApp();
@@ -108,9 +108,10 @@ export default function App() {
         ...prev,
         [page]: url
       }));
-    } catch (err) {
-      console.error(`Failed to update hero image for page ${page}:`, err);
+    } catch (err: any) {
+      console.error(`Failed to update hero image for page ${page}:`, err?.message || String(err));
       alert("Failed to save customizable hero image. Please try again.");
+      throw new Error(err?.message || String(err));
     }
   };
 
@@ -375,8 +376,8 @@ export default function App() {
         editingProductId: null,
       };
       window.history.replaceState(stateObj, "");
-    } catch (err) {
-      console.error("Failed to create product in Firestore:", err);
+    } catch (err: any) {
+      console.error("Failed to create product in Firestore:", err?.message || String(err));
       alert("Failed to save product to database. Please try again.");
     }
   };
@@ -448,8 +449,8 @@ export default function App() {
         editingProductId: null,
       };
       window.history.replaceState(stateObj, "");
-    } catch (err) {
-      console.error("Failed to update product in Firestore:", err);
+    } catch (err: any) {
+      console.error("Failed to update product in Firestore:", err?.message || String(err));
       alert("Failed to save product modifications. Please try again.");
     }
   };
@@ -468,9 +469,9 @@ export default function App() {
       if (selectedProduct && selectedProduct.id === updatedProduct.id) {
         setSelectedProduct(updatedProduct);
       }
-    } catch (err) {
-      console.error("Failed to update product:", err);
-      throw err;
+    } catch (err: any) {
+      console.error("Failed to update product:", err?.message || String(err));
+      throw new Error(err?.message || String(err));
     }
   };
 

@@ -40,24 +40,39 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid || null,
-      email: auth.currentUser?.email || null,
-      emailVerified: auth.currentUser?.emailVerified || null,
-      isAnonymous: auth.currentUser?.isAnonymous || null,
-      tenantId: auth.currentUser?.tenantId || null,
-      providerInfo: auth.currentUser?.providerData?.map(provider => ({
-        providerId: provider.providerId,
-        email: provider.email,
-      })) || []
-    },
-    operationType,
-    path
-  };
-  console.error("Firestore Error: ", JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  let serializedErr = "";
+  try {
+    const errInfo: FirestoreErrorInfo = {
+      error: error instanceof Error ? error.message : String(error),
+      authInfo: {
+        userId: auth.currentUser?.uid || null,
+        email: auth.currentUser?.email || null,
+        emailVerified: auth.currentUser?.emailVerified || null,
+        isAnonymous: auth.currentUser?.isAnonymous || null,
+        tenantId: auth.currentUser?.tenantId || null,
+        providerInfo: auth.currentUser?.providerData?.map(provider => ({
+          providerId: provider.providerId,
+          email: provider.email,
+        })) || []
+      },
+      operationType,
+      path
+    };
+    serializedErr = JSON.stringify(errInfo);
+  } catch (serializationError) {
+    serializedErr = JSON.stringify({
+      error: error instanceof Error ? error.message : String(error),
+      authInfo: {
+        userId: auth.currentUser?.uid || null,
+        email: auth.currentUser?.email || null
+      },
+      operationType,
+      path,
+      serializationFailed: true
+    });
+  }
+  console.error("Firestore Error: ", serializedErr);
+  throw new Error(serializedErr);
 }
 
 export interface HeroImages {
@@ -90,7 +105,7 @@ export async function fetchHeroImages(): Promise<HeroImages> {
     if (error?.message?.includes("permission") || error?.code === "permission-denied") {
       handleFirestoreError(error, OperationType.GET, path);
     }
-    console.error("Error fetching hero images from Firestore:", error);
+    console.warn("Error fetching hero images from Firestore (falling back to defaults):", error?.message || String(error));
     return DEFAULT_HEROES;
   }
 }
@@ -107,7 +122,7 @@ export async function updateHeroImageInDb(page: keyof HeroImages, url: string): 
     if (error?.message?.includes("permission") || error?.code === "permission-denied") {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
-    throw error;
+    throw new Error(error?.message || String(error));
   }
 }
 
@@ -148,8 +163,8 @@ export async function fetchProducts(): Promise<Product[]> {
       for (const p of foundHardcoded) {
         try {
           await deleteDoc(doc(db, PRODUCTS_COLLECTION, p.id));
-        } catch (e) {
-          console.error(`Failed to delete legacy product ${p.id}:`, e);
+        } catch (e: any) {
+          console.error(`Failed to delete legacy product ${p.id}:`, e?.message || String(e));
         }
       }
       products = products.filter(p => !hardcodedIds.includes(p.id));
@@ -160,7 +175,7 @@ export async function fetchProducts(): Promise<Product[]> {
     if (error?.message?.includes("permission") || error?.code === "permission-denied") {
       handleFirestoreError(error, OperationType.GET, path);
     }
-    console.error("Error fetching products from Firestore:", error);
+    console.warn("Error fetching products from Firestore (falling back to offline list):", error?.message || String(error));
     // Return hard-coded products as fallback
     return PRODUCTS;
   }
@@ -179,12 +194,12 @@ async function seedInitialProducts(): Promise<void> {
         if (error?.message?.includes("permission") || error?.code === "permission-denied") {
           handleFirestoreError(error, OperationType.WRITE, `${PRODUCTS_COLLECTION}/${product.id}`);
         }
-        throw error;
+        throw new Error(error?.message || String(error));
       }
     }
     console.log("Initial products successfully seeded to Firestore.");
-  } catch (error) {
-    console.error("Failed to seed initial products:", error);
+  } catch (error: any) {
+    console.error("Failed to seed initial products:", error?.message || String(error));
   }
 }
 
@@ -200,7 +215,7 @@ export async function createProduct(product: Product): Promise<void> {
     if (error?.message?.includes("permission") || error?.code === "permission-denied") {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
-    throw error;
+    throw new Error(error?.message || String(error));
   }
 }
 
@@ -216,7 +231,7 @@ export async function updateProduct(product: Product): Promise<void> {
     if (error?.message?.includes("permission") || error?.code === "permission-denied") {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
-    throw error;
+    throw new Error(error?.message || String(error));
   }
 }
 
@@ -231,6 +246,6 @@ export async function deleteProduct(productId: string): Promise<void> {
     if (error?.message?.includes("permission") || error?.code === "permission-denied") {
       handleFirestoreError(error, OperationType.DELETE, path);
     }
-    throw error;
+    throw new Error(error?.message || String(error));
   }
 }

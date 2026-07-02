@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDocFromServer } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 import firebaseConfig from "../../firebase-applet-config.json";
 
 // Initialize Firebase App
@@ -11,15 +12,27 @@ const app = initializeApp({
   storageBucket: firebaseConfig.storageBucket,
   messagingSenderId: firebaseConfig.messagingSenderId,
   appId: firebaseConfig.appId,
+  measurementId: firebaseConfig.measurementId,
 });
 
 // Initialize Auth
 export const auth = getAuth(app);
 
-// Initialize Firestore (with databaseId if defined)
-export const db = firebaseConfig.firestoreDatabaseId
+// Initialize Firestore (with databaseId if defined and is not the default database name)
+export const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "default" && firebaseConfig.firestoreDatabaseId !== "(default)")
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
+
+// Initialize Analytics conditionally
+export let analytics: Analytics | null = null;
+isSupported().then((supported) => {
+  if (supported) {
+    analytics = getAnalytics(app);
+    console.log("Firebase Analytics initialized.");
+  }
+}).catch((err) => {
+  console.warn("Analytics not supported or blocked in this environment:", err);
+});
 
 // Validate Connection to Firestore on initial boot
 async function testConnection() {
@@ -28,7 +41,7 @@ async function testConnection() {
     console.log("Firestore connection validated successfully.");
   } catch (error) {
     if (error instanceof Error && error.message.includes("the client is offline")) {
-      console.error("Please check your Firebase configuration or network status.", error);
+      console.warn("Firestore initialized in local/offline fallback mode: " + error.message);
     } else {
       console.log("Firestore connection initialized.");
     }

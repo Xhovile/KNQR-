@@ -23,6 +23,7 @@ export default function EditableHeroImage({
   const [rawFile, setRawFile] = useState<File | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState<"idle" | "cloudinary" | "firestore">("idle");
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,20 +73,25 @@ export default function EditableHeroImage({
   const handleConfirmSave = async () => {
     if (!rawFile) return;
     setIsUploading(true);
+    setUploadPhase("cloudinary");
     setUploadError(null);
     try {
       // Direct instant upload to Cloudinary using raw File object (exactly like ProductForm)
       const secureUrl = await uploadToCloudinary(rawFile);
+      
+      setUploadPhase("firestore");
       // Persist to database callback
       await onSave(secureUrl);
+      
       setTempImage(null);
       setRawFile(null);
       setShowConfirmDialog(false);
     } catch (err: any) {
-      console.error("Failed to update hero image:", err);
+      console.error("Failed to update hero image:", err?.message || String(err));
       setUploadError(err?.message || "Cloudinary upload failed. Please try again.");
     } finally {
       setIsUploading(false);
+      setUploadPhase("idle");
     }
   };
 
@@ -211,7 +217,9 @@ export default function EditableHeroImage({
                   <div className="absolute inset-0 bg-chocolate/85 flex flex-col items-center justify-center space-y-3">
                     <Loader2 className="w-8 h-8 text-gold animate-spin" />
                     <p className="text-xs font-mono text-cream uppercase tracking-widest animate-pulse">
-                      Uploading to Cloudinary...
+                      {uploadPhase === "cloudinary" 
+                        ? "Uploading to Cloudinary..." 
+                        : "Saving to secure database..."}
                     </p>
                   </div>
                 )}

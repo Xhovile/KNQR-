@@ -257,7 +257,7 @@ export default function ProductForm({
       await onSubmit(finalValues);
       setIsUploading(false);
     } catch (err: any) {
-      console.error("Upload process failed:", err);
+      console.error("Upload process failed:", err?.message || String(err));
       setUploadError(err?.message || "An unexpected error occurred during image upload.");
       setIsUploading(false);
     }

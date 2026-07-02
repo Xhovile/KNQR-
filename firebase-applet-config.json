@@ -3,7 +3,7 @@
   "appId": "1:1084187137974:web:590d542a96a40c032bd317",
   "apiKey": "AIzaSyCV4SEuLywDxhAJE9PoDRFcQ7DJQEmG4m0",
   "authDomain": "knqr-online.firebaseapp.com",
-  "firestoreDatabaseId": "",
+  "firestoreDatabaseId": "default",
   "storageBucket": "knqr-online.firebasestorage.app",
   "messagingSenderId": "1084187137974",
   "measurementId": "G-GT4KL13CRP"
