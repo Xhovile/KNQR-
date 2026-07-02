@@ -32,6 +32,10 @@ body {
   color: #f3ede1;
   font-family: var(--font-sans);
   overflow-x: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* Luxury visual accents */

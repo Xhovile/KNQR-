@@ -79,6 +79,10 @@ function ProductCard({
             <span className="bg-sky-800 text-white text-[8px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded shadow-xs">
               COMING SOON
             </span>
+          ) : product.stock > 0 && product.stock < 5 ? (
+            <span className="bg-amber-600 text-white text-[8px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded shadow-xs animate-pulse">
+              Only {product.stock} Left
+            </span>
           ) : null}
         </div>
 
@@ -145,6 +149,12 @@ function ProductCard({
             MK {formattedMWK} <span className="text-chocolate/20">/</span> ${formattedUSD}
           </span>
         </div>
+        {!isSoldOut && !isComingSoon && product.stock > 0 && product.stock < 5 && (
+          <div className="text-[8px] font-mono font-semibold text-amber-600/90 flex items-center gap-1.5 animate-pulse mt-0.5 uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block animate-ping" />
+            Urgent: {product.stock} left in stock
+          </div>
+        )}
       </div>
     </div>
   );

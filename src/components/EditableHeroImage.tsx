@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Image as ImageIcon, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { uploadToCloudinary } from "../utils/cloudinary";
@@ -129,12 +130,16 @@ export default function EditableHeroImage({
         onMouseLeave={cancelLongPress}
         onTouchStart={startLongPress}
         onTouchEnd={cancelLongPress}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {src ? (
           <img
             src={src}
             alt={alt}
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-[2000ms] ease-out"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-[2000ms] ease-out pointer-events-none select-none"
+            style={{ WebkitTouchCallout: "none" }}
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
             referrerPolicy="no-referrer"
             loading="eager"
           />
@@ -203,77 +208,88 @@ export default function EditableHeroImage({
         <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-gold/40 rounded-br-sm pointer-events-none" />
       </motion.div>
 
-      {/* Confirmation Modal Overlay */}
-      <AnimatePresence>
-        {showConfirmDialog && tempImage && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-chocolate-dark/95 backdrop-blur-md p-6">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="max-w-md w-full bg-chocolate border border-cream/15 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden text-cream space-y-6"
+      {/* Confirmation Modal Overlay Portaled to document.body */}
+      {typeof window !== "undefined" && createPortal(
+        <AnimatePresence>
+          {showConfirmDialog && tempImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-chocolate-dark/95 backdrop-blur-md p-6"
             >
-              <h3 className="font-serif text-xl tracking-wide text-cream">
-                Confirm New Hero Image?
-              </h3>
-              <p className="text-[10px] font-mono text-gold tracking-widest uppercase">
-                Preview of selected image
-              </p>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="max-w-md w-full bg-chocolate border border-cream/15 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden text-cream space-y-6"
+              >
+                <h3 className="font-serif text-xl tracking-wide text-cream">
+                  Confirm New Hero Image?
+                </h3>
+                <p className="text-[10px] font-mono text-gold tracking-widest uppercase">
+                  Preview of selected image
+                </p>
 
-              <div className="relative w-full aspect-[3/2] rounded-xl overflow-hidden border border-cream/15 bg-chocolate-light/50 shadow-inner">
-                <img
-                  src={tempImage}
-                  alt="New Hero Preview"
-                  className="w-full h-full object-cover object-center"
-                />
-                
-                {isUploading && (
-                  <div className="absolute inset-0 bg-chocolate/85 flex flex-col items-center justify-center space-y-3">
-                    <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                    <p className="text-xs font-mono text-cream uppercase tracking-widest animate-pulse">
-                      {uploadPhase === "cloudinary" 
-                        ? "Uploading to Cloudinary..." 
-                        : "Saving to secure database..."}
-                    </p>
+                <div className="relative w-full aspect-[3/2] rounded-xl overflow-hidden border border-cream/15 bg-chocolate-light/50 shadow-inner">
+                  <img
+                    src={tempImage}
+                    alt="New Hero Preview"
+                    className="w-full h-full object-cover object-center pointer-events-none select-none"
+                    style={{ WebkitTouchCallout: "none" }}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+                  
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-chocolate/85 flex flex-col items-center justify-center space-y-3">
+                      <Loader2 className="w-8 h-8 text-gold animate-spin" />
+                      <p className="text-xs font-mono text-cream uppercase tracking-widest animate-pulse">
+                        {uploadPhase === "cloudinary" 
+                          ? "Uploading to Cloudinary..." 
+                          : "Saving to secure database..."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {uploadError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 font-mono text-left">
+                    {uploadError}
                   </div>
                 )}
-              </div>
 
-              {uploadError && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 font-mono text-left">
-                  {uploadError}
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={handleCancelConfirm}
+                    disabled={isUploading}
+                    className="flex-1 py-3 border border-cream/15 hover:border-cream/35 rounded-xl text-xs font-mono tracking-wider uppercase text-cream/70 hover:text-cream transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmSave}
+                    disabled={isUploading}
+                    className="flex-1 py-3 bg-cream hover:bg-gold text-chocolate font-bold rounded-xl text-xs font-mono tracking-wider uppercase transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <span>Confirm</span>
+                    )}
+                  </button>
                 </div>
-              )}
-
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={handleCancelConfirm}
-                  disabled={isUploading}
-                  className="flex-1 py-3 border border-cream/15 hover:border-cream/35 rounded-xl text-xs font-mono tracking-wider uppercase text-cream/70 hover:text-cream transition-all cursor-pointer disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmSave}
-                  disabled={isUploading}
-                  className="flex-1 py-3 bg-cream hover:bg-gold text-chocolate font-bold rounded-xl text-xs font-mono tracking-wider uppercase transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-2"
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <span>Confirm</span>
-                  )}
-                </button>
-              </div>
+              </motion.div>
             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
