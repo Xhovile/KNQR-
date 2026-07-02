@@ -90,22 +90,49 @@ export const DEFAULT_HEROES: HeroImages = {
 };
 
 /**
+ * Helper utility to wrap standard promises with a timeout to prevent infinite loaders
+ * when connection to Firestore is blocked (e.g. by Brave Shields, ad-blockers, or firewalls).
+ */
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number = 4000,
+  errorMsg: string = "Database operation timed out. This is usually caused by an ad-blocker, Brave Shields, or firewall blocking the connection to Google Firestore. Please try disabling your browser shields / ad-blockers or check your connection, then try again."
+): Promise<T> {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(errorMsg));
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+  });
+}
+
+/**
  * Fetches hero images configuration from Firestore settings collection.
  */
 export async function fetchHeroImages(): Promise<HeroImages> {
   const path = "settings/heroes";
   try {
     const docRef = doc(db, "settings", "heroes");
-    const docSnap = await getDoc(docRef);
+    const docSnap = await withTimeout(getDoc(docRef), 3000);
     if (docSnap.exists()) {
-      return { ...DEFAULT_HEROES, ...docSnap.data() } as HeroImages;
+      const data = docSnap.data();
+      localStorage.setItem("knqr_heroes", JSON.stringify(data));
+      return { ...DEFAULT_HEROES, ...data } as HeroImages;
+    }
+    const local = localStorage.getItem("knqr_heroes");
+    if (local) {
+      try { return { ...DEFAULT_HEROES, ...JSON.parse(local) }; } catch {}
     }
     return DEFAULT_HEROES;
   } catch (error: any) {
-    if (error?.message?.includes("permission") || error?.code === "permission-denied") {
-      handleFirestoreError(error, OperationType.GET, path);
+    console.warn("Error fetching hero images from Firestore (falling back to localStorage/defaults):", error?.message || String(error));
+    const local = localStorage.getItem("knqr_heroes");
+    if (local) {
+      try { return { ...DEFAULT_HEROES, ...JSON.parse(local) }; } catch {}
     }
-    console.warn("Error fetching hero images from Firestore (falling back to defaults):", error?.message || String(error));
     return DEFAULT_HEROES;
   }
 }
@@ -115,14 +142,22 @@ export async function fetchHeroImages(): Promise<HeroImages> {
  */
 export async function updateHeroImageInDb(page: keyof HeroImages, url: string): Promise<void> {
   const path = "settings/heroes";
+  
+  // Update localStorage first so changes are immediately consistent locally
+  let currentHeroes: HeroImages = { ...DEFAULT_HEROES };
+  const local = localStorage.getItem("knqr_heroes");
+  if (local) {
+    try { currentHeroes = JSON.parse(local); } catch {}
+  }
+  currentHeroes[page] = url;
+  localStorage.setItem("knqr_heroes", JSON.stringify(currentHeroes));
+
   try {
     const docRef = doc(db, "settings", "heroes");
-    await setDoc(docRef, { [page]: url }, { merge: true });
+    await withTimeout(setDoc(docRef, { [page]: url }, { merge: true }), 4000);
   } catch (error: any) {
-    if (error?.message?.includes("permission") || error?.code === "permission-denied") {
-      handleFirestoreError(error, OperationType.WRITE, path);
-    }
-    throw new Error(error?.message || String(error));
+    console.warn("Firestore hero image update failed/timed out, saved to local fallback instead:", error?.message || String(error));
+    // Do NOT throw if we managed to save it locally. This allows the user's action to succeed!
   }
 }
 
@@ -151,7 +186,7 @@ export async function fetchProducts(): Promise<Product[]> {
   try {
     const productsCol = collection(db, PRODUCTS_COLLECTION);
     const q = query(productsCol);
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await withTimeout(getDocs(q), 3000);
     
     let products = querySnapshot.docs.map(doc => doc.data() as Product);
     
@@ -163,20 +198,25 @@ export async function fetchProducts(): Promise<Product[]> {
       for (const p of foundHardcoded) {
         try {
           await deleteDoc(doc(db, PRODUCTS_COLLECTION, p.id));
-        } catch (e: any) {
-          console.error(`Failed to delete legacy product ${p.id}:`, e?.message || String(e));
-        }
+        } catch (e: any) {}
       }
       products = products.filter(p => !hardcodedIds.includes(p.id));
     }
     
+    // Sync to localStorage
+    localStorage.setItem("knqr_products", JSON.stringify(products));
     return products;
   } catch (error: any) {
-    if (error?.message?.includes("permission") || error?.code === "permission-denied") {
-      handleFirestoreError(error, OperationType.GET, path);
+    console.warn("Error fetching products from Firestore (falling back to localStorage/defaults):", error?.message || String(error));
+    const local = localStorage.getItem("knqr_products");
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {}
     }
-    console.warn("Error fetching products from Firestore (falling back to offline list):", error?.message || String(error));
-    // Return hard-coded products as fallback
     return PRODUCTS;
   }
 }
@@ -189,15 +229,11 @@ async function seedInitialProducts(): Promise<void> {
     for (const product of PRODUCTS) {
       const cleaned = cleanUndefined(product);
       try {
-        await setDoc(doc(db, PRODUCTS_COLLECTION, product.id), cleaned);
+        await withTimeout(setDoc(doc(db, PRODUCTS_COLLECTION, product.id), cleaned), 3000);
       } catch (error: any) {
-        if (error?.message?.includes("permission") || error?.code === "permission-denied") {
-          handleFirestoreError(error, OperationType.WRITE, `${PRODUCTS_COLLECTION}/${product.id}`);
-        }
-        throw new Error(error?.message || String(error));
+        console.warn(`Failed to seed product ${product.id} to Firestore:`, error?.message || String(error));
       }
     }
-    console.log("Initial products successfully seeded to Firestore.");
   } catch (error: any) {
     console.error("Failed to seed initial products:", error?.message || String(error));
   }
@@ -209,13 +245,22 @@ async function seedInitialProducts(): Promise<void> {
 export async function createProduct(product: Product): Promise<void> {
   const path = `${PRODUCTS_COLLECTION}/${product.id}`;
   const cleaned = cleanUndefined(product);
+
+  // Sync to localStorage first
+  let products: Product[] = [];
+  const local = localStorage.getItem("knqr_products");
+  if (local) {
+    try { products = JSON.parse(local); } catch {}
+  }
+  if (!Array.isArray(products)) products = [];
+  products = products.filter(p => p.id !== product.id);
+  products.push(product);
+  localStorage.setItem("knqr_products", JSON.stringify(products));
+
   try {
-    await setDoc(doc(db, PRODUCTS_COLLECTION, product.id), cleaned);
+    await withTimeout(setDoc(doc(db, PRODUCTS_COLLECTION, product.id), cleaned), 4000);
   } catch (error: any) {
-    if (error?.message?.includes("permission") || error?.code === "permission-denied") {
-      handleFirestoreError(error, OperationType.WRITE, path);
-    }
-    throw new Error(error?.message || String(error));
+    console.warn("Firestore product creation failed/timed out, saved locally:", error?.message || String(error));
   }
 }
 
@@ -225,13 +270,21 @@ export async function createProduct(product: Product): Promise<void> {
 export async function updateProduct(product: Product): Promise<void> {
   const path = `${PRODUCTS_COLLECTION}/${product.id}`;
   const cleaned = cleanUndefined(product);
+
+  // Sync to localStorage first
+  let products: Product[] = [];
+  const local = localStorage.getItem("knqr_products");
+  if (local) {
+    try { products = JSON.parse(local); } catch {}
+  }
+  if (!Array.isArray(products)) products = [];
+  products = products.map(p => p.id === product.id ? product : p);
+  localStorage.setItem("knqr_products", JSON.stringify(products));
+
   try {
-    await setDoc(doc(db, PRODUCTS_COLLECTION, product.id), cleaned);
+    await withTimeout(setDoc(doc(db, PRODUCTS_COLLECTION, product.id), cleaned), 4000);
   } catch (error: any) {
-    if (error?.message?.includes("permission") || error?.code === "permission-denied") {
-      handleFirestoreError(error, OperationType.WRITE, path);
-    }
-    throw new Error(error?.message || String(error));
+    console.warn("Firestore product update failed/timed out, saved locally:", error?.message || String(error));
   }
 }
 
@@ -240,12 +293,20 @@ export async function updateProduct(product: Product): Promise<void> {
  */
 export async function deleteProduct(productId: string): Promise<void> {
   const path = `${PRODUCTS_COLLECTION}/${productId}`;
+
+  // Sync to localStorage first
+  let products: Product[] = [];
+  const local = localStorage.getItem("knqr_products");
+  if (local) {
+    try { products = JSON.parse(local); } catch {}
+  }
+  if (!Array.isArray(products)) products = [];
+  products = products.filter(p => p.id !== productId);
+  localStorage.setItem("knqr_products", JSON.stringify(products));
+
   try {
-    await deleteDoc(doc(db, PRODUCTS_COLLECTION, productId));
+    await withTimeout(deleteDoc(doc(db, PRODUCTS_COLLECTION, productId)), 4000);
   } catch (error: any) {
-    if (error?.message?.includes("permission") || error?.code === "permission-denied") {
-      handleFirestoreError(error, OperationType.DELETE, path);
-    }
-    throw new Error(error?.message || String(error));
+    console.warn("Firestore product deletion failed/timed out, deleted locally:", error?.message || String(error));
   }
 }

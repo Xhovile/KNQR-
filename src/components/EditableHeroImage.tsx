@@ -70,26 +70,40 @@ export default function EditableHeroImage({
     }
   };
 
+  const SAVE_TIMEOUT_MS = 20000;
+
   const handleConfirmSave = async () => {
     if (!rawFile) return;
+
     setIsUploading(true);
     setUploadPhase("cloudinary");
     setUploadError(null);
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     try {
-      // Direct instant upload to Cloudinary using raw File object (exactly like ProductForm)
       const secureUrl = await uploadToCloudinary(rawFile);
-      
+
       setUploadPhase("firestore");
-      // Persist to database callback
-      await onSave(secureUrl);
-      
+
+      await Promise.race([
+        onSave(secureUrl),
+        new Promise<void>((_, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error("Saving hero image timed out. Check Firestore rules, auth, or network.")),
+            SAVE_TIMEOUT_MS
+          );
+        }),
+      ]);
+
       setTempImage(null);
       setRawFile(null);
       setShowConfirmDialog(false);
     } catch (err: any) {
       console.error("Failed to update hero image:", err?.message || String(err));
-      setUploadError(err?.message || "Cloudinary upload failed. Please try again.");
+      setUploadError(err?.message || "Failed to save hero image. Please try again.");
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setIsUploading(false);
       setUploadPhase("idle");
     }

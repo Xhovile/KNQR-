@@ -50,4 +50,23 @@ export interface CartItem {
   selectedColor?: string;
 }
 
+export interface Order {
+  id: string;
+  userId: string;
+  userEmail: string | null;
+  items: CartItem[];
+  totalUSD: number;
+  totalMWK: number;
+  currency: "USD" | "MWK";
+  deliveryDetails: {
+    name: string;
+    phone: string;
+    city: string;
+    address: string;
+    paymentMethod: string;
+  };
+  status: "pending" | "preparing" | "shipped" | "delivered" | "cancelled";
+  createdAt: string;
+}
+
 export type ActiveTab = "home" | "shop" | "contact" | "apparel" | "bags-accessories" | "fragrances" | "auth";

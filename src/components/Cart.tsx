@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { X, Trash2, ShieldCheck, CreditCard, Landmark, Check, ShoppingCart, Plus, Minus } from "lucide-react";
+import { X, Trash2, ShieldCheck, CreditCard, Landmark, Check, ShoppingCart, Plus, Minus, RefreshCw } from "lucide-react";
 import { CartItem } from "../types";
 import { motion, AnimatePresence } from "motion/react";
+import { createOrder } from "../services/orderService";
 
 interface CartProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface CartProps {
   onRemoveItem: (productId: string, size?: string, color?: string) => void;
   onClearCart: () => void;
   priceCurrency: "USD" | "MWK";
+  user?: any;
 }
 
 export default function Cart({
@@ -21,9 +23,12 @@ export default function Cart({
   onRemoveItem,
   onClearCart,
   priceCurrency,
+  user,
 }: CartProps) {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<"details" | "success">("details");
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -42,9 +47,38 @@ export default function Cart({
       ? `$${totalUSD}`
       : `MK ${totalMWK.toLocaleString()}`;
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCheckoutStep("success");
+    setIsSubmittingOrder(true);
+    setOrderError(null);
+
+    try {
+      const orderData = {
+        userId: user ? user.uid : "guest",
+        userEmail: user ? user.email : "guest@knqr-lifestyle.com",
+        items: cartItems,
+        totalUSD,
+        totalMWK,
+        currency: priceCurrency,
+        deliveryDetails: {
+          name: formData.name,
+          phone: formData.phone,
+          city: formData.city,
+          address: formData.address,
+          paymentMethod: formData.paymentMethod,
+        },
+        status: "pending" as const,
+        createdAt: new Date().toISOString(),
+      };
+
+      await createOrder(orderData);
+      setCheckoutStep("success");
+    } catch (err: any) {
+      console.error("Order submission failed:", err);
+      setOrderError(err?.message || "An unexpected error occurred during checkout. Please try again.");
+    } finally {
+      setIsSubmittingOrder(false);
+    }
   };
 
   const handleFinishCheckout = () => {
@@ -372,8 +406,18 @@ export default function Cart({
                       </div>
                     </div>
 
+                    {/* Error message */}
+                    {orderError && (
+                      <div 
+                        className="p-3.5 rounded-lg border border-red-500/35 bg-red-500/10 text-red-400 text-xs text-left"
+                        id="checkout-order-error"
+                      >
+                        {orderError}
+                      </div>
+                    )}
+
                     {/* Trust Factor */}
-                    <div className="flex items-center space-x-2 text-[10px] text-cream/40 justify-center select-none pt-2">
+                    <div className="flex items-center space-x-2 text-[10px] text-cream/40 justify-center select-none pt-2" id="checkout-trust-factor">
                       <ShieldCheck className="w-3.5 h-3.5 text-gold" />
                       <span>KNQR Direct Delivery: Handled within 24-48 hours.</span>
                     </div>
@@ -381,10 +425,18 @@ export default function Cart({
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="w-full py-4 bg-cream hover:bg-gold text-chocolate font-sans text-xs tracking-[0.3em] uppercase rounded-full transition-all duration-300 shadow-lg font-semibold cursor-pointer"
+                      disabled={isSubmittingOrder}
+                      className="w-full py-4 bg-cream hover:bg-gold disabled:bg-cream/40 disabled:text-chocolate/60 disabled:cursor-not-allowed text-chocolate font-sans text-xs tracking-[0.3em] uppercase rounded-full transition-all duration-300 shadow-lg font-semibold cursor-pointer flex items-center justify-center space-x-2"
                       id="submit-checkout-btn"
                     >
-                      Authorize Payment
+                      {isSubmittingOrder ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-chocolate/75" />
+                          <span>Processing order...</span>
+                        </>
+                      ) : (
+                        <span>Authorize Payment</span>
+                      )}
                     </button>
                   </form>
                 ) : (

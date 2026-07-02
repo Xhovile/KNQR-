@@ -37,5 +37,10 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read, write: if true;
     }
+
+    // Orders match rule
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
   }
 }
